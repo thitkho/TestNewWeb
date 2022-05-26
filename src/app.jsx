@@ -22,8 +22,13 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles"
-import { Box, Button, createTheme, CssBaseline, styled, Typography } from "@mui/material";
+import { Box, Button, createTheme, CssBaseline, Paper, styled, Typography } from "@mui/material";
 import { PropTypes } from "prop-types";
+import chroma from "chroma-js";
+
+//
+const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
+
 //full app
 const FullApp = () => {
 
@@ -38,12 +43,17 @@ const HomePage = () => {
 
   const [UiController, dispatch] = useUiControl();
   const { layout, darkMode } = UiController;
-
+  console.log()
   useEffect(()=>{
     setLayout(dispatch, "page")
   },[dispatch]);
   return(
-    <Box>
+    <Box
+      height={500}
+      sx={{
+        backgroundImage: `url(${bgImage})`,
+      }}
+    >
       <Button>test</Button>
       {layout}-{darkMode.toString()}
       <Button 
@@ -52,20 +62,21 @@ const HomePage = () => {
           dispatch({type: "LAYOUT", value: "value"});
           setDarkMode(dispatch, !darkMode)}}
         >test layout</Button>
+        
     </Box>
   )
 }
 //TTComponent
 const TTBox = forwardRef(
   ({
-    variant, bgcolor, color, opacity, 
+    variant, bgColor, color, opacity, 
     borderRadius, shadow, coloredShadow, ...rest
   }, ref)=>(
     <BoxStyle
       {...rest}
       ref={ref}
       ownerState={{
-        variant, bgcolor, color, opacity,
+        variant, bgColor, color, opacity,
         borderRadius, shadow, coloredShadow
       }}
     />
@@ -101,10 +112,11 @@ TTBox.propTypes = {
 };
 const BoxStyle = styled(Box)(({theme, ownerState})=>{
   //TODO
-  const { palette, borders, boxShadow, functions } = theme;
-  const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
+  // const { palette, borders, boxShadow, functions } = theme;
+  // const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
+  const { bgColor, color, opacity, borderRadius } = ownerState;
   
-  //opacityvalue
+  //opacityValue
   let opacityValue = opacity
   //background value
   let backgroundValue = bgColor;
@@ -112,7 +124,7 @@ const BoxStyle = styled(Box)(({theme, ownerState})=>{
   let borderRadiusValue = borderRadius
   //color value
   let colorValue = color;
-  //boxshadow value
+  //boxShadow value
   let boxShadowValue = "none";
   return{
     opacity: opacityValue,
@@ -136,8 +148,8 @@ const PageLayout = ({background, children}) =>{
     <Box
       width={"100vw"}
       height={"100%"}
-      minHeight={"100vh"}           //Thuộc tính min-height thiết lập chiều cao tối thiểu (nhỏ nhất) cho thành phần.
-      bgcolor={background}
+      minHeight={"100vh"}           //set min height for component.
+      bgColor={background}
       sx={{
         overflowX: "hidden"         //when width of child > parent
       }}    
@@ -146,12 +158,28 @@ const PageLayout = ({background, children}) =>{
     </Box>
   )
 }
+const BackgroundPage = ({image}) => {
+  return(
+    <Box
+      position="absolute"
+      width="100%"
+      minHeight="100vh"
+      sx={{
+        backgroundImage: ({palette:{gradients}})=>image && `url(${image})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    />
+
+  )
+}
 const BasicLayout = ({bgImage, children}) => {
   return(
     <PageLayout>
-      <Typography variant="h3">Basic Layout</Typography>
-      {/* DefaultNavba */}
+      {/* DefaultNavbar */}
       {/* BackGroundImage */}
+      <BackgroundPage image={bgImage}/>
       {/* Content */}
       {children}
       {/* Footer */}
@@ -160,7 +188,7 @@ const BasicLayout = ({bgImage, children}) => {
 }
 const SignIn = () => {
   return(
-    <BasicLayout>
+    <BasicLayout bgImage={bgImage}>
       <Typography variant="h2">SignIn</Typography>
       
     </BasicLayout>
@@ -175,7 +203,7 @@ const ChildApp = () => {
     <ThemeProvider theme={darkMode?themeDark:themeDefault}>
       <Routes>
         <Route path="*" element={<HomePage />}></Route>
-        <Route path="/signin" element={<SignIn />}></Route>
+        <Route path="/signIn" element={<SignIn />}></Route>
       </Routes>
     </ThemeProvider>
   )
@@ -340,7 +368,7 @@ const myColors = {
       dark: "#00669c",
     },
 
-    pinterest: {
+    pinterEst: {
       main: "#cc2127",
       dark: "#b21d22",
     },
@@ -360,7 +388,7 @@ const myColors = {
       dark: "#329874",
     },
 
-    dribbble: {
+    dribble: {
       main: "#ea4c89",
       dark: "#e73177",
     },
@@ -446,7 +474,7 @@ const myColors = {
   }
 }
 //
-const reponsivePoint = {
+const responsivePoint = {
   device: {
     mobile: 0,
     tablet: 640,
@@ -470,26 +498,34 @@ const reponsivePoint = {
     xxl: 1408,  //88*16
   },
 }
+//
+const myFunction = {
+  pxToRem: (number, baseNumber=16)=>{return `${number/baseNumber}rem`},    //convert a px unit into a rem uint
+  hexToRgb: (colorNum) => { return chroma(colorNum).rgb().join(", ")},     //helps you to change the hex color code to rgb
+  //linearGradient: ()=>{return()}   //function helps you to create a linear gradient color background
+
+}
 const themeDefault = createTheme({
   palette:{...myColors},
-  breakpoints: {...reponsivePoint}
+  breakpoints: {...responsivePoint},
+  function:{...myFunction}
 });
 const themeDark = createTheme({
   palette:{...myColors},
-  breakpoints:{...reponsivePoint},
+  breakpoints:{...responsivePoint},
 });
 
-//uicontext
+//uiContext
 const UiContext = createContext();
 UiContext.displayName = "UiController";
-const UICONSTANT = {
+const UI_CONSTANT = {
   LAYOUT: "LAYOUT",
   DARK_MODE: "DARK_MODE"
 }
 const UiReducer = (state, action) => {
   switch(action.type){
-    case UICONSTANT.LAYOUT: return{...state, layout: action.value};
-    case UICONSTANT.DARK_MODE: return{...state, darkMode: action.value};
+    case UI_CONSTANT.LAYOUT: return{...state, layout: action.value};
+    case UI_CONSTANT.DARK_MODE: return{...state, darkMode: action.value};
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
@@ -520,8 +556,9 @@ const useUiControl = () => {
   }
   return context;
 }
-const setLayout = (dispatch, value) => dispatch({ type: UICONSTANT.LAYOUT, value });
-const setDarkMode = (dispatch, value) => dispatch({type: UICONSTANT.DARK_MODE, value})
+const setLayout = (dispatch, value) => dispatch({ type: UI_CONSTANT.LAYOUT, value });
+const setDarkMode = (dispatch, value) => dispatch({type: UI_CONSTANT.DARK_MODE, value})
 //export default FullApp;
+
 
 
