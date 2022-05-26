@@ -19,7 +19,7 @@
     "react-router-dom": "^6.3.0",
     "react-spring": "^9.4.5",
     "redux": "^4.2.0",
-    "redux-logger": "^3.0.6",
+    "redux-logger": "^4.0.0",
     "redux-thunk": "^2.4.1",
     "wouter": "^2.7.4"
   },
