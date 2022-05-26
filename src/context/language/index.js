@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState, useContext } from 'react';
 
 //vn-jp-en.json
 const en = {
@@ -122,6 +122,7 @@ const Explore = () => {
 //
 const LanguageComponent = () => {
     return(
+      <LanguageProvider>
         <div>
             <h1> Language Component</h1>
             <header>
@@ -130,6 +131,7 @@ const LanguageComponent = () => {
             <Explore />
             <label>env_{process.env.REACT_APP_TEST}</label>
         </div>
+      </LanguageProvider>
     )
 }
 export default LanguageComponent;
