@@ -504,7 +504,7 @@ const googleHandler = async () => {
 //             const credential = GoogleAuthProvider.credentialFromError(error);
 //             // ...
 //         });
-// };
+};
 // signOut(auth)
 // .then(() => {
 //     console.log('logged out');
@@ -512,4 +512,5 @@ const googleHandler = async () => {
 // })
 // .catch((error) => {
 //     console.log(error);
-});
+//}
+//);
