@@ -13,7 +13,7 @@ import { Router, Link } from "wouter";
 
 // Import and apply CSS stylesheet
 import "./styles/styles.css";
-import LanguageComponent from './context/language';
+import LanguageComponent from './context/language/index.js';
 
 // Where all of our pages come from
 import PageRouter from "./components/router.jsx";
@@ -24,9 +24,8 @@ import Seo from "./components/seo.jsx";
 // Home function that is reflected across the site
 export default function Home() {
   return (
-    <Router>
+    <div>
       <label>Tan dep trai</label>
-      <LanguageComponent />
-    </Router>
+    </div>
   );
 }

@@ -42,11 +42,11 @@ export const languageOptions = {
     jp: "日本語"
 }
 //langue
-export const LangueContext = createContext({
+const LangueContext = createContext({
     userLangaege: 'en',
     dictionary: dictonaryList.en
 });
-export const LanguageProvider = ({children}) => {
+const LanguageProvider = ({children}) => {
     const defaultLanguage = window.localStorage.getItem('rcml-lang');
     const [userLangaege, setUserLangaege] = useState(defaultLanguage||'en');
     const value = {
@@ -58,13 +58,13 @@ export const LanguageProvider = ({children}) => {
             window.localStorage.setItem('rmcl-lang', newLangue);
         }
     }
-    return(
-        <LangueContext.Provider value={value}>
-            {children}
-        </LangueContext.Provider>
+    return(children
+        // <LangueContext.Provider value={value}>
+        //     {children}
+        // </LangueContext.Provider>
     )
 }
-export const TextId = ({tid}) =>{
+const TextId = ({tid}) =>{
     const languageContext = useContext(LangueContext);
     return languageContext.dictionary[tid]||tid;
 }
