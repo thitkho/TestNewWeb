@@ -22,10 +22,13 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles"
-import { Box, Button, createTheme, CssBaseline, Paper, styled, Typography } from "@mui/material";
+import { 
+  Box, Button, createTheme, CssBaseline, Grid,
+  Paper,
+  styled, Typography, useTheme
+} from "@mui/material";
 import { PropTypes } from "prop-types";
 import chroma from "chroma-js";
-
 //
 const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
 
@@ -39,30 +42,96 @@ const FullApp = () => {
     
   )
 }
+
+//to test component, color, theme, ...everything
 const HomePage = () => {
 
   const [UiController, dispatch] = useUiControl();
   const { layout, darkMode } = UiController;
-  console.log()
+  const { palette, functionT } = useTheme();
+  
+  // console.log("test pxToRem: ", functionT.pxToRem(10));
+  // console.log("test hxToRbg: ", functionT.hxToRgb("#AAAAAA"));
+  // console.log("test hexToRbg: ");
+  // console.log("")
+  // const linear =  functionT.linearGradient("#515", "#ffffff");
+
   useEffect(()=>{
     setLayout(dispatch, "page")
   },[dispatch]);
   return(
-    <Box
-      height={500}
-      sx={{
-        backgroundImage: `url(${bgImage})`,
-      }}
-    >
-      <Button>test</Button>
-      {layout}-{darkMode.toString()}
+    <Box>
+      <Typography>{layout}-{darkMode.toString()}</Typography>
+      <Button
+        // sx={{backgroundImage: linear}} 
+        color="primary">test</Button>
+      
       <Button 
-        variant="outlined" 
+        variant="contained"
+        // color="success"
+        // sx={{color:base.primary.main}}
         onClick={()=>{
           dispatch({type: "LAYOUT", value: "value"});
           setDarkMode(dispatch, !darkMode)}}
         >test layout</Button>
-        
+        <Box
+          height={500}
+          sx={{
+            backgroundImage: `url(${bgImage})`,
+          }}>
+            
+          </Box>
+          <Box
+        sx={{
+          boxShadow: 1,
+          width: '8rem',
+          height: '5rem',
+          // bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#101010' : '#fff'),
+          // color: (theme) =>
+          //   theme.palette.mode === 'dark' ? 'grey.300' : 'grey.800',
+          p: 1,
+          m: 1,
+          borderRadius: 2,
+          textAlign: 'center',
+          fontSize: '0.875rem',
+          fontWeight: '700',
+        }}
+      >
+        boxShadow: 3
+      </Box>
+      <TTBox>
+        <Button>test TTBox</Button>
+      </TTBox>
+      <TestTTBox />
+    </Box>
+  )
+}
+const TestTTBox = () => {
+
+  const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
+  }));
+
+  return(
+    <Box>
+      <Grid container spacing={2}>
+        <Grid item xs={8}>
+          <TTBox>abc</TTBox>
+        </Grid>
+        <Grid item xs={4}>
+          <TTBox>abc</TTBox>
+        </Grid>
+        <Grid item xs={4}>
+          <TTBox>abc</TTBox>
+        </Grid>
+        <Grid item xs={8}>
+          <TTBox>abc</TTBox>
+        </Grid>
+      </Grid>
     </Box>
   )
 }
@@ -112,26 +181,26 @@ TTBox.propTypes = {
 };
 const BoxStyle = styled(Box)(({theme, ownerState})=>{
   //TODO
-  // const { palette, borders, boxShadow, functions } = theme;
-  // const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
-  const { bgColor, color, opacity, borderRadius } = ownerState;
-  
+  const { palette, borders, boxShadow, functions } = theme;
+  const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
+  //const { bgColor, color, opacity, borderRadius } = ownerState;
+ 
   //opacityValue
   let opacityValue = opacity
   //background value
-  let backgroundValue = bgColor;
+  //let backgroundValue = bgColor;
   //border radius value
   let borderRadiusValue = borderRadius
   //color value
   let colorValue = color;
   //boxShadow value
-  let boxShadowValue = "none";
+  //let boxShadowValue = "none";
   return{
     opacity: opacityValue,
-    background: backgroundValue,
-    color: colorValue,
-    borderRadius: borderRadiusValue,
-    boxShadow: boxShadowValue,
+    //background: backgroundValue,
+    //color: colorValue,
+    //borderRadius: borderRadiusValue,
+    //boxShadow: boxShadowValue,
   }
 })
 const PageLayout = ({background, children}) =>{
@@ -160,29 +229,53 @@ const PageLayout = ({background, children}) =>{
 }
 const BackgroundPage = ({image}) => {
   return(
-    <Box
+    <TTBox
       position="absolute"
       width="100%"
       minHeight="100vh"
       sx={{
-        backgroundImage: ({palette:{gradients}})=>image && `url(${image})`,
+        // backgroundImage: ({functionT:{lnGradient, clToRgba},palette:{gradients}}) => {
+        //   return`url(${image})` && image && lnGradient(clToRgba(gradients.dark.main, 0.1),clToRgba(gradients.dark.state, 0.6))
+        // },
+        backgroundImage: ({functionT:{lnGradient, clToRgba}, palette: {gradients}})=>
+        image && `${lnGradient(clToRgba(gradients.dark.main, 0.1),clToRgba(gradients.dark.state, 0.6))}, url(${image})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       }}
     />
-
   )
 }
+const ContentPage = ({component}) => {
+  return(
+    <Box
+      // width={"100%"} height={"100vh"}
+      // px={1} mx="auto"
+    >
+      {component}
+    </Box>
+  )
+}
+const Footer = () => {
+
+  return(
+    <TTBox>
+      <Typography>Footer</Typography>
+    </TTBox>
+  )
+} 
 const BasicLayout = ({bgImage, children}) => {
   return(
     <PageLayout>
       {/* DefaultNavbar */}
+      <Typography>asdf</Typography>
       {/* BackGroundImage */}
       <BackgroundPage image={bgImage}/>
       {/* Content */}
-      {children}
+      <ContentPage component={children}/>
+      <Typography>asdf</Typography>
       {/* Footer */}
+      <Footer/>
     </PageLayout>
   )
 }
@@ -190,7 +283,7 @@ const SignIn = () => {
   return(
     <BasicLayout bgImage={bgImage}>
       <Typography variant="h2">SignIn</Typography>
-      
+      <label>afb</label>
     </BasicLayout>
   )
 }
@@ -223,7 +316,7 @@ const RootProvider = ({children}) => {
 const myColors = {
 
   //common color
-  common:{
+  //common:{
     background: {
       default: "#f0f2f5",
     },
@@ -247,10 +340,10 @@ const myColors = {
       main: "#000000",
       focus: "#000000",
     },
-  },
+  //},
   
   //clone sx of material color
-  base:{
+  //base:{
     primary: {
       main: "#e91e63",
       focus: "#e91e63",
@@ -301,7 +394,7 @@ const myColors = {
       800: "#343a40",
       900: "#212529",
     },
-  },
+  //},
 
   //advances
   gradients: {
@@ -465,16 +558,16 @@ const myColors = {
   },
 
   //colors of component
-  element:{
+  //element:{
     inputBorderColor: "#d2d6da",
 
     tabs: {
-      indicator: { boxShadow: "#ddd" },
+      indicator: { bxShadow: "#ddd" },
     },
-  }
+  //}
 }
 //
-const responsivePoint = {
+const myPoint = {
   device: {
     mobile: 0,
     tablet: 640,
@@ -498,22 +591,94 @@ const responsivePoint = {
     xxl: 1408,  //88*16
   },
 }
+const pxToRem = (number, baseNumber=16)=>{return `${number/baseNumber}rem`}
+const hxToRgb = (color) => {
+  return chroma(color).rgb().join(", ");
+}
+const lnGradient = (color, colorState, angle = 195)=>{ 
+  console.log(`linear-gradient(${angle}deg, ${color}, ${colorState})`)
+  return `linear-gradient(${angle}deg, ${color}, ${colorState})`
+}
+const clToRgba = (color, opacity)=>{
+  console.log(`rgba(${hxToRgb(color)}, ${opacity})`);
+  
+  return `rgba(${hxToRgb(color)}, ${opacity})`
+}
+
+const bxShadow = (offset=[], radius=[], color, opacity, inset)=>{
+  const [x, y] = offset;
+  const [blur, spread] = radius;
+  return `${inset} ${x/16}rem ${y/16}rem ${blur/16}rem ${spread/16}rem ${clToRgba(color, opacity)}`
+}
 //
 const myFunction = {
-  pxToRem: (number, baseNumber=16)=>{return `${number/baseNumber}rem`},    //convert a px unit into a rem uint
-  hexToRgb: (colorNum) => { return chroma(colorNum).rgb().join(", ")},     //helps you to change the hex color code to rgb
-  //linearGradient: ()=>{return()}   //function helps you to create a linear gradient color background
+  //pxToRem: (number, baseNumber=16)=>{return `${number/baseNumber}rem`},    //convert a px unit into a rem uint
+  pxToRem,
+  //hxToRgb: (colorStr) => {return hexToRgb(colorStr)},     //helps you to change the hex color code to rgb
+  hxToRgb,
+  //lnGradient: (color, colorState, angle = 195)=>{ return `linear-gradient(${angle}deg, ${color}, ${colorState})`},   //function helps you to create a linear gradient color background
+  lnGradient,
+  //clToRgba:(color, opacity)=>{return `rgba(${hexToRgb(color)}), ${opacity}`},
+  clToRgba,
+  //bxShadow: bxShadow
+  bxShadow,
+}
+const { black, white, tabs, coloredShadows } = myColors;
+const myShadow = {
+  xs: bxShadow([0, 2], [9, -5], black.main, 0.15),
+  sm: bxShadow([0, 5], [10, 0], black.main, 0.12),
+  md: `${bxShadow([0, 4], [6, -1], black.main, 0.1)}, 
+       ${bxShadow([0, 2], [4, -1], black.main, 0.06)}`,
+  lg: `${bxShadow([0,10], [15,-3], black.main, 0.1)}, 
+       ${bxShadow([0, 4], [6, -2], black.main, 0.05 )}`,
+  xl: `${bxShadow([0,20], [25,-5], black.main, 0.1)}, 
+       ${bxShadow([0,10], [10,-5], black.main, 0.04)}`,
+  xxl: bxShadow([0, 20], [27, 0], black.main, 0.05),
+  inset: bxShadow([0, 1], [2, 0], black.main, 0.075, "inset"),
+  colored: {
+    primary: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+              ${bxShadow([0, 7], [10, -5],coloredShadows.primary,0.4)}`,
+    secondary: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+                ${bxShadow( [0, 7], [10, -5],  coloredShadows.secondary, 0.4 )}`,
+    info: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+           ${bxShadow( [0, 7], [10, -5],  coloredShadows.info, 0.4 )}`,
+    success: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+              ${bxShadow( [0, 7], [10, -5],  coloredShadows.success, 0.4 )}`,
+    warning: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+              ${bxShadow( [0, 7], [10, -5],  coloredShadows.warning, 0.4 )}`,
+    error: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+            ${bxShadow( [0, 7], [10, -5],  coloredShadows.error, 0.4 )}`,
+    light: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+            ${bxShadow( [0, 7], [10, -5],  coloredShadows.light, 0.4 )}`,
+    dark: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
+           ${bxShadow( [0, 7], [10, -5],  coloredShadows.dark, 0.4 )}`,
+  },
+  navbarbxShadow: `${bxShadow([0, 0], [1, 1], white.main, 0.9, "inset")}, 
+                   ${bxShadow([0, 20],[27, 0], black.main, 0.05 )}`,
+  sliderbxShadow: {
+    thumb: bxShadow([0, 1], [13, 0], black.main, 0.2),
+  },
+  tabsbxShadow: {
+    indicator: bxShadow([0, 1], [5, 1], tabs.indicator.bxShadow, 1),
+  },
+}
+const myComponent = {
 
 }
 const themeDefault = createTheme({
-  palette:{...myColors},
-  breakpoints: {...responsivePoint},
-  function:{...myFunction}
+  palette:{...myColors},      //palatte
+  breakpoints:{...myPoint},       //breakpoint
+  functionT:{...myFunction},    //function
+  shadows:{...myShadow},      //shadow
+  components:{...myComponent}
 });
 const themeDark = createTheme({
-  palette:{...myColors},
-  breakpoints:{...responsivePoint},
+  ...myColors,      //palatte
+  ...myPoint,       //breakpoint
+  ...myFunction,    //function
+  ...myShadow,      //shadow
 });
+// const themeGlass = createTheme({});
 
 //uiContext
 const UiContext = createContext();
@@ -559,6 +724,5 @@ const useUiControl = () => {
 const setLayout = (dispatch, value) => dispatch({ type: UI_CONSTANT.LAYOUT, value });
 const setDarkMode = (dispatch, value) => dispatch({type: UI_CONSTANT.DARK_MODE, value})
 //export default FullApp;
-
 
 
