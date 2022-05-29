@@ -8,6 +8,8 @@ export default function Home() {
     </div>
   );
 }
+
+// test
 import React, { forwardRef, useEffect } from "react";
 import { 
   createContext, 
@@ -31,9 +33,26 @@ import { PropTypes } from "prop-types";
 import chroma from "chroma-js";
 //
 const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
+export const ChildApp = () => {
 
+  const [UiController] = useUiControl();
+  const { darkMode } = UiController;
+
+  console.log("test childApp");
+  return(
+    <ThemeProvider theme={darkMode?themeDark:themeDefault}>
+      <Routes>
+        <Route path="*" element={<HomePage />}></Route>
+        <Route path="/signIn" element={<SignIn />}></Route>
+        <Route path="/signup" element={<SignUp />}></Route>
+      </Routes>
+    </ThemeProvider>
+  )
+}
 //full app
 const FullApp = () => {
+  
+  console.log("test Full App")
 
   return(
     <RootProvider>
@@ -42,6 +61,7 @@ const FullApp = () => {
     
   )
 }
+
 
 //to test component, color, theme, ...everything
 const HomePage = () => {
@@ -63,8 +83,10 @@ const HomePage = () => {
     <Box>
       <Typography>{layout}-{darkMode.toString()}</Typography>
       <Button
-        // sx={{backgroundImage: linear}} 
-        color="primary">test</Button>
+        
+        sx={{position: 'absolute',zIndex: 5}} 
+        color="success">test
+      </Button>
       
       <Button 
         variant="contained"
@@ -73,7 +95,8 @@ const HomePage = () => {
         onClick={()=>{
           dispatch({type: "LAYOUT", value: "value"});
           setDarkMode(dispatch, !darkMode)}}
-        >test layout</Button>
+        >test layout
+      </Button>
         <Box
           height={500}
           sx={{
@@ -82,31 +105,32 @@ const HomePage = () => {
             
           </Box>
           <Box
-        sx={{
-          boxShadow: 1,
-          width: '8rem',
-          height: '5rem',
-          // bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#101010' : '#fff'),
-          // color: (theme) =>
-          //   theme.palette.mode === 'dark' ? 'grey.300' : 'grey.800',
-          p: 1,
-          m: 1,
-          borderRadius: 2,
-          textAlign: 'center',
-          fontSize: '0.875rem',
-          fontWeight: '700',
-        }}
+            
+            sx={{
+              boxShadow: 1,
+              width: '8rem',
+              height: '5rem',
+              // bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#101010' : '#fff'),
+              // color: (theme) =>
+              //   theme.palette.mode === 'dark' ? 'grey.300' : 'grey.800',
+              p: 1,
+              m: 1,
+              borderRadius: 2,
+              textAlign: 'center',
+              fontSize: '0.875rem',
+              fontWeight: '700',
+            }}
       >
         boxShadow: 3
       </Box>
-      <TTBox>
-        <Button>test TTBox</Button>
-      </TTBox>
-      <TestTTBox />
+      <Box>
+        <Button>test BOx</Button>
+      </Box>
+      <TestBox />
     </Box>
   )
 }
-const TestTTBox = () => {
+const TestBox = () => {
 
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -120,16 +144,16 @@ const TestTTBox = () => {
     <Box>
       <Grid container spacing={2}>
         <Grid item xs={8}>
-          <TTBox>abc</TTBox>
+          <Box>abc</Box>
         </Grid>
         <Grid item xs={4}>
-          <TTBox>abc</TTBox>
+          <Box>abc</Box>
         </Grid>
         <Grid item xs={4}>
-          <TTBox>abc</TTBox>
+          <Box>abc</Box>
         </Grid>
         <Grid item xs={8}>
-          <TTBox>abc</TTBox>
+          <Box>abc</Box>
         </Grid>
       </Grid>
     </Box>
@@ -179,30 +203,52 @@ TTBox.propTypes = {
     "none",
   ]),
 };
+
 const BoxStyle = styled(Box)(({theme, ownerState})=>{
   //TODO
-  const { palette, borders, boxShadow, functions } = theme;
+  const { palette, borders, shadows, functionT } = theme;
   const { variant, bgColor, color, opacity, borderRadius, shadow, coloredShadow } = ownerState;
-  //const { bgColor, color, opacity, borderRadius } = ownerState;
- 
-  //opacityValue
+  
+  //
+  const { gradients, grey, white } = palette;
+  const { lnGradient } = functionT;
+  const { borderRadius: radius } = borders;
+  const { colored } = shadows
+
+  console.log(grey)
+  const greyColors = {
+    "grey-100": grey[100],
+    "grey-200": grey[200],
+    "grey-300": grey[300],
+    "grey-400": grey[400],
+    "grey-500": grey[500],
+    "grey-600": grey[600],
+    "grey-700": grey[700],
+    "grey-800": grey[800],
+    "grey-900": grey[900],
+  }
+  console.log(greyColors)
+  const validBorderRadius = ["xs", "sm", "md", "lg", "xl", "xxl", "section"];
+  const validBxShadows = ["xs", "sm", "md", "lg", "xl", "xxl", "inset"];      //opacityValue
   let opacityValue = opacity
   //background value
-  //let backgroundValue = bgColor;
+  let backgroundValue = bgColor;
   //border radius value
   let borderRadiusValue = borderRadius
   //color value
   let colorValue = color;
   //boxShadow value
-  //let boxShadowValue = "none";
+  let boxShadowValue = "none";
+  
   return{
     opacity: opacityValue,
-    //background: backgroundValue,
-    //color: colorValue,
-    //borderRadius: borderRadiusValue,
-    //boxShadow: boxShadowValue,
+    background: backgroundValue,
+    color: colorValue,
+    borderRadius: borderRadiusValue,
+    boxShadow: boxShadowValue,
   }
 })
+
 const PageLayout = ({background, children}) =>{
 
   const [, dispatch] = useUiControl();
@@ -214,7 +260,7 @@ const PageLayout = ({background, children}) =>{
   },[dispatch, pathname]);
 
   return(
-    <Box
+    <TTBox
       width={"100vw"}
       height={"100%"}
       minHeight={"100vh"}           //set min height for component.
@@ -224,13 +270,13 @@ const PageLayout = ({background, children}) =>{
       }}    
     >
       {children}
-    </Box>
+    </TTBox>
   )
 }
 const BackgroundPage = ({image}) => {
   return(
-    <TTBox
-      position="absolute"
+    <Box
+      position={"absolute"}
       width="100%"
       minHeight="100vh"
       sx={{
@@ -243,7 +289,8 @@ const BackgroundPage = ({image}) => {
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       }}
-    />
+    >
+    </Box>
   )
 }
 const ContentPage = ({component}) => {
@@ -259,50 +306,69 @@ const ContentPage = ({component}) => {
 const Footer = () => {
 
   return(
-    <TTBox>
+    <Box zIndex={10}>
       <Typography>Footer</Typography>
-    </TTBox>
+    </Box>
   )
-} 
-const BasicLayout = ({bgImage, children}) => {
+}
+const DefaultNavbar = () => {
+
+  return(
+    <Box position={"absolute"} zIndex={5}
+      sx={{backgroundColor: "white"}}
+    >
+      <Typography>tan dep trai</Typography>
+    </Box>
+  )
+}
+const BasicLayout = ({
+  bgImage, children,
+  DefaultNavbar,
+  BackgroundPage,
+  ContentPage,
+  Footer
+}) => {
   return(
     <PageLayout>
       {/* DefaultNavbar */}
-      <Typography>asdf</Typography>
+      <DefaultNavbar />
       {/* BackGroundImage */}
       <BackgroundPage image={bgImage}/>
       {/* Content */}
       <ContentPage component={children}/>
-      <Typography>asdf</Typography>
+      {/* <Typography>asdf</Typography>
       {/* Footer */}
       <Footer/>
     </PageLayout>
   )
 }
+//
+const SignUp = () => {
+
+  return(
+    <Box>
+      <Typography>sign upo</Typography>
+    </Box>
+  )
+}
 const SignIn = () => {
   return(
-    <BasicLayout bgImage={bgImage}>
+    <BasicLayout 
+      bgImage={bgImage}
+      DefaultNavbar={DefaultNavbar}
+      BackgroundPage={BackgroundPage}
+      ContentPage={ContentPage}
+      Footer={Footer}
+      >
       <Typography variant="h2">SignIn</Typography>
       <label>afb</label>
     </BasicLayout>
   )
 }
-const ChildApp = () => {
 
-  const [UiController] = useUiControl();
-  const { darkMode } = UiController;
-
-  return(
-    <ThemeProvider theme={darkMode?themeDark:themeDefault}>
-      <Routes>
-        <Route path="*" element={<HomePage />}></Route>
-        <Route path="/signIn" element={<SignIn />}></Route>
-      </Routes>
-    </ThemeProvider>
-  )
-}
 //root provider
 const RootProvider = ({children}) => {
+  console.log("test RootProvide");
   return(
     <BrowserRouter>
       <UiProvider>
@@ -566,6 +632,7 @@ const myColors = {
     },
   //}
 }
+
 //
 const myPoint = {
   device: {
@@ -596,11 +663,11 @@ const hxToRgb = (color) => {
   return chroma(color).rgb().join(", ");
 }
 const lnGradient = (color, colorState, angle = 195)=>{ 
-  console.log(`linear-gradient(${angle}deg, ${color}, ${colorState})`)
+  // console.log(`linear-gradient(${angle}deg, ${color}, ${colorState})`)
   return `linear-gradient(${angle}deg, ${color}, ${colorState})`
 }
 const clToRgba = (color, opacity)=>{
-  console.log(`rgba(${hxToRgb(color)}, ${opacity})`);
+  // console.log(`rgba(${hxToRgb(color)}, ${opacity})`);
   
   return `rgba(${hxToRgb(color)}, ${opacity})`
 }
@@ -610,7 +677,7 @@ const bxShadow = (offset=[], radius=[], color, opacity, inset)=>{
   const [blur, spread] = radius;
   return `${inset} ${x/16}rem ${y/16}rem ${blur/16}rem ${spread/16}rem ${clToRgba(color, opacity)}`
 }
-//
+// function of theme
 const myFunction = {
   //pxToRem: (number, baseNumber=16)=>{return `${number/baseNumber}rem`},    //convert a px unit into a rem uint
   pxToRem,
@@ -623,6 +690,32 @@ const myFunction = {
   //bxShadow: bxShadow
   bxShadow,
 }
+//border theme
+const { grey } = myColors;
+const myBorders = {
+  borderColor: grey[300],
+
+  borderWidth: {
+    0: 0,
+    1: pxToRem(1),
+    2: pxToRem(2),
+    3: pxToRem(3),
+    4: pxToRem(4),
+    5: pxToRem(5),
+  },
+
+  borderRadius: {
+    xs: pxToRem(1.6),
+    sm: pxToRem(2),
+    md: pxToRem(6),
+    lg: pxToRem(8),
+    xl: pxToRem(12),
+    xxl: pxToRem(16),
+    section: pxToRem(160),
+  },
+}
+
+// shadow of theme
 const { black, white, tabs, coloredShadows } = myColors;
 const myShadow = {
   xs: bxShadow([0, 2], [9, -5], black.main, 0.15),
@@ -653,24 +746,269 @@ const myShadow = {
     dark: `${bxShadow([0, 4], [20, 0], black.main, 0.14)}, 
            ${bxShadow( [0, 7], [10, -5],  coloredShadows.dark, 0.4 )}`,
   },
-  navbarbxShadow: `${bxShadow([0, 0], [1, 1], white.main, 0.9, "inset")}, 
+  navbarBxShadow: `${bxShadow([0, 0], [1, 1], white.main, 0.9, "inset")}, 
                    ${bxShadow([0, 20],[27, 0], black.main, 0.05 )}`,
-  sliderbxShadow: {
+  sliderBxShadow: {
     thumb: bxShadow([0, 1], [13, 0], black.main, 0.2),
   },
   tabsbxShadow: {
     indicator: bxShadow([0, 1], [5, 1], tabs.indicator.bxShadow, 1),
   },
 }
-const myComponent = {
-
+// text of theme
+const { dark } = myColors;
+const baseProperties = {
+  fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  fontWeightLighter: 100,
+  fontWeightLight: 300,
+  fontWeightRegular: 400,
+  fontWeightMedium: 600,
+  fontWeightBold: 700,
+  fontSizeXXS: pxToRem(10.4),
+  fontSizeXS: pxToRem(12),
+  fontSizeSM: pxToRem(14),
+  fontSizeMD: pxToRem(16),
+  fontSizeLG: pxToRem(18),
+  fontSizeXL: pxToRem(20),
+  fontSize2XL: pxToRem(24),
+  fontSize3XL: pxToRem(30),
 }
+const baseHeadingProperties = {
+  fontFamily: baseProperties.fontFamily,
+  color: dark.main,
+  fontWeight: baseProperties.fontWeightBold,
+}
+const baseDisplayProperties = {
+  fontFamily: baseProperties.fontFamily,
+  color: dark.main,
+  fontWeight: baseProperties.fontWeightLight,
+  lineHeight: 1.2,
+}
+const myText = {
+
+  //base
+  fontFamily: baseProperties.fontFamily,
+  fontWeightLighter: baseProperties.fontWeightLighter,
+  fontWeightLight: baseProperties.fontWeightLight,
+  fontWeightRegular: baseProperties.fontWeightRegular,
+  fontWeightMedium: baseProperties.fontWeightMedium,
+  fontWeightBold: baseProperties.fontWeightBold,
+
+  //html component
+  h1: {
+    fontSize: pxToRem(48),
+    lineHeight: 1.25,
+    ...baseHeadingProperties,
+  },
+
+  h2: {
+    fontSize: pxToRem(36),
+    lineHeight: 1.3,
+    ...baseHeadingProperties,
+  },
+
+  h3: {
+    fontSize: pxToRem(30),
+    lineHeight: 1.375,
+    ...baseHeadingProperties,
+  },
+
+  h4: {
+    fontSize: pxToRem(24),
+    lineHeight: 1.375,
+    ...baseHeadingProperties,
+  },
+
+  h5: {
+    fontSize: pxToRem(20),
+    lineHeight: 1.375,
+    ...baseHeadingProperties,
+  },
+
+  h6: {
+    fontSize: pxToRem(16),
+    lineHeight: 1.625,
+    ...baseHeadingProperties,
+  },
+
+  //material
+  subtitle1: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeXL,
+    fontWeight: baseProperties.fontWeightLight,
+    lineHeight: 1.625,
+  },
+
+  subtitle2: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeMD,
+    fontWeight: baseProperties.fontWeightLight,
+    lineHeight: 1.6,
+  },
+
+  body1: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeXL,
+    fontWeight: baseProperties.fontWeightRegular,
+    lineHeight: 1.625,
+  },
+
+  body2: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeMD,
+    fontWeight: baseProperties.fontWeightLight,
+    lineHeight: 1.6,
+  },
+
+  button: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeSM,
+    fontWeight: baseProperties.fontWeightLight,
+    lineHeight: 1.5,
+    textTransform: "uppercase",
+  },
+
+  caption: {
+    fontFamily: baseProperties.fontFamily,
+    fontSize: baseProperties.fontSizeXS,
+    fontWeight: baseProperties.fontWeightLight,
+    lineHeight: 1.25,
+  },
+
+  overline: {
+    fontFamily: baseProperties.fontFamily,
+  },
+
+  // display me
+  d1: {
+    fontSize: pxToRem(80),
+    ...baseDisplayProperties,
+  },
+
+  d2: {
+    fontSize: pxToRem(72),
+    ...baseDisplayProperties,
+  },
+
+  d3: {
+    fontSize: pxToRem(64),
+    ...baseDisplayProperties,
+  },
+
+  d4: {
+    fontSize: pxToRem(56),
+    ...baseDisplayProperties,
+  },
+
+  d5: {
+    fontSize: pxToRem(48),
+    ...baseDisplayProperties,
+  },
+
+  d6: {
+    fontSize: pxToRem(40),
+    ...baseDisplayProperties,
+  },
+
+  size: {
+    xxs: baseProperties.fontSizeXXS,
+    xs: baseProperties.fontSizeXS,
+    sm: baseProperties.fontSizeSM,
+    md: baseProperties.fontSizeMD,
+    lg: baseProperties.fontSizeLG,
+    xl: baseProperties.fontSizeXL,
+    "2xl": baseProperties.fontSize2XL,
+    "3xl": baseProperties.fontSize3XL,
+  },
+
+  lineHeight: {
+    sm: 1.25,
+    md: 1.5,
+    lg: 2,
+  },
+}
+//overide style component of theme
+const myComponent = {
+  
+}
+const { size: {sm, md, lg, xl, xxl} } = myPoint;
+const SM = `@media (min-width: ${sm}px)`;
+const MD = `@media (min-width: ${md}px)`;
+const LG = `@media (min-width: ${lg}px)`;
+const XL = `@media (min-width: ${xl}px)`;
+const XXL = `@media (min-width: ${xxl}px)`;
+const sharedClasses = {
+  paddingRight: `${pxToRem(24)} !important`,
+  paddingLeft: `${pxToRem(24)} !important`,
+  marginRight: "auto !important",
+  marginLeft: "auto !important",
+  width: "100% !important",
+  position: "relative",
+}
+const container = {
+  [SM]: {
+    ".MuiContainer-root": {
+      ...sharedClasses,
+      maxWidth: "540px !important",
+    },
+  },
+  [MD]: {
+    ".MuiContainer-root": {
+      ...sharedClasses,
+      maxWidth: "720px !important",
+    },
+  },
+  [LG]: {
+    ".MuiContainer-root": {
+      ...sharedClasses,
+      maxWidth: "960px !important",
+    },
+  },
+  [XL]: {
+    ".MuiContainer-root": {
+      ...sharedClasses,
+      maxWidth: "1140px !important",
+    },
+  },
+  [XXL]: {
+    ".MuiContainer-root": {
+      ...sharedClasses,
+      maxWidth: "1320px !important",
+    },
+  },
+}
+
+//global styleOverrides for html
+//TODO: 
+const { info } = myColors;
+const myGlobals = {
+  html: { scrollBehavior: "smooth"},
+  "*, *::before, *::after":{ margin: 0, padding: 0},
+  "a, a:link, a:visited":{ textDecoration: "none !important"},
+  "a.link, .link, a.link:link, .link:link, a.link:visited, .link:visited":{
+    color: `${dark.main} !important`,
+    transition: "color 150ms ease-in !important",
+  },
+  "a.link:hover, .link:hover, a.link:focus, .link:focus": {
+    color: `${info.main} !important`,
+  },
+}
+//theme default - light
 const themeDefault = createTheme({
-  palette:{...myColors},      //palatte
-  breakpoints:{...myPoint},       //breakpoint
-  functionT:{...myFunction},    //function
+  palette:{...myColors},      //palette
+  breakpoints:{...myPoint},   //breakpoint
+  functionT:{...myFunction},  //function
   shadows:{...myShadow},      //shadow
-  components:{...myComponent}
+  components:{...myComponent,
+    MuiCssBaseline: {
+      styleOverrides: {
+        ...myGlobals,
+        ...container,
+      }
+    }
+  }, //components
+  borders:{...myBorders},
+  typography:{...myText},
 });
 const themeDark = createTheme({
   ...myColors,      //palatte
@@ -724,5 +1062,3 @@ const useUiControl = () => {
 const setLayout = (dispatch, value) => dispatch({ type: UI_CONSTANT.LAYOUT, value });
 const setDarkMode = (dispatch, value) => dispatch({type: UI_CONSTANT.DARK_MODE, value})
 //export default FullApp;
-
-
