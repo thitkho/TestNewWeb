@@ -1,13 +1,5 @@
 
-// Home function that is reflected across the site
-export default function Home() {
-  return (
-    <div>
-      <label>Tan dep trai</label>
-      <FullApp />
-    </div>
-  );
-}
+
 // test
 import React, { forwardRef, useEffect, useState } from "react";
 import { 
@@ -58,6 +50,16 @@ import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
 import FourKIcon from '@mui/icons-material/FourK';
 import ThreeSixtyIcon from '@mui/icons-material/ThreeSixty';
 import Favorite from '@mui/icons-material/Favorite'
+
+// Home function that is reflected across the site
+export default function Home() {
+  return (
+    <div>
+      <label>Tan dep trai</label>
+      <FullApp />
+    </div>
+  );
+}
 //resouces
 const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
 
