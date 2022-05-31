@@ -22,13 +22,13 @@ import {
 import { createTheme } from "@mui/material/styles";
 import { ThemeProvider } from "@mui/material/styles"
 // import Icon from "@mui/material/Icon";
-import Menu from "@mui/material/Menu";
 import { 
   Box, Button, Card, CssBaseline, Grid,
   // Link,
-  styled, Typography, Switch, TextField, Link
+  styled, Typography, Switch, TextField, Link,
   // useTheme
 } from "@mui/material";
+import MenuCom from "@mui/material/Menu"
 // prop-types is a library for typechecking of props
 // chroma-js is a library for all kinds of color conversions and color scales.
 import chroma from "chroma-js";
@@ -41,7 +41,9 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 // import { Link } from "react-router-dom";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import GoogleIcon from "@mui/icons-material/Google";
-import { AccountCircle, DonutLarge, Key, Person, } from "@mui/icons-material";
+import {
+  AccountCircle, DonutLarge, Key, Person, Menu, Close
+} from "@mui/icons-material";
 import PropTypes from "prop-types";
 import propTypes from "prop-types";
 import Icon from '@mui/material/Icon';
@@ -65,6 +67,7 @@ const Home = () => {
     </TTBox>
   )
 }
+
 // input
 const TTInput = forwardRef(({
   error, success, disabled, ...rest
@@ -1002,7 +1005,8 @@ function DefaultNavbar({ transparent, light, action }) {
           sx={{ cursor: "pointer" }}
           onClick={openMobileNavbar}
         >
-          <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon>
+          {/* <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon> */}
+          {mobileNavbar?<Close fontSize="default"/>:<Menu fontSize="default"/>}
         </TTBox>
       </TTBox>
       {mobileView && <DefaultNavbarMobile open={mobileNavbar} close={closeMobileNavbar} />}
@@ -1054,7 +1058,8 @@ function DefaultNavbarLink({ Icon, name, route, light}) {
       alignItems="center"
       sx={{ cursor: "pointer", userSelect: "none" }}
     >
-      <Icon  sx={{
+      <Icon sx={{
+          fontSize: "medium",
           color: ({ palette: { white, secondary } }) => (light ? white.main : secondary.main),
           verticalAlign: "middle",
         }}
@@ -1092,7 +1097,7 @@ function DefaultNavbarMobile({ open, close }) {
   const { width } = open && open.getBoundingClientRect();
 
   return (
-    <Menu
+    <MenuCom
       getContentAnchorEl={null}
       anchorOrigin={{
         vertical: "bottom",
@@ -1113,7 +1118,7 @@ function DefaultNavbarMobile({ open, close }) {
         <DefaultNavbarLink Icon={AccountCircle} name="sign up" route="/authentication/sign-up" light={false}/>
         <DefaultNavbarLink Icon={Key} name="sign in" route="/authentication/sign-in" light={false}/>
       </TTBox>
-    </Menu>
+    </MenuCom>
   );
 }
 
@@ -1196,17 +1201,17 @@ const SignIn = () => {
           <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
             <Grid item xs={2}>
               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
-                <FacebookIcon color="inherit" />
+                <FacebookIcon color="inherit" fontSize="small"/>
               </TTTypography>
             </Grid>
             <Grid item xs={2}>
               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GitHubIcon color="inherit" />
+                <GitHubIcon color="inherit" fontSize="small"/>
               </TTTypography>
             </Grid>
             <Grid item xs={2}>
               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GoogleIcon color="inherit" />
+                <GoogleIcon color="inherit" fontSize="small"/>
               </TTTypography>
             </Grid>
           </Grid>
@@ -2573,6 +2578,51 @@ const inputLabel = {
     },
   },
 };
+// const { lg } = boxShadows;
+// const { size } = typography;
+// const { text, white } = colors;
+// const { borderRadius } = borders;
+
+const menuCom = {
+  defaultProps: {
+    disableAutoFocusItem: true,
+  },
+
+  styleOverrides: {
+    paper: {
+      minWidth: pxToRem(160),
+      boxShadow: lg,
+      padding: `${pxToRem(16)} ${pxToRem(8)}`,
+      fontSize: size.sm,
+      color: text.main,
+      textAlign: "left",
+      backgroundColor: `${white.main} !important`,
+      borderRadius: borderRadius.md,
+    },
+  },
+};
+// const { light, text, dark } = colors;
+// const { borderRadius } = borders;
+// const { size } = typography;
+
+const menuItem = {
+  styleOverrides: {
+    root: {
+      minWidth: pxToRem(160),
+      minHeight: "unset",
+      padding: `${pxToRem(4.8)} ${pxToRem(16)}`,
+      borderRadius: borderRadius.md,
+      fontSize: size.sm,
+      color: text.main,
+      transition: "background-color 300ms ease, color 300ms ease",
+
+      "&:hover, &:focus, &.Mui-selected, &.Mui-selected:hover, &.Mui-selected:focus": {
+        backgroundColor: light.main,
+        color: dark.main,
+      },
+    },
+  },
+};
 const themeDark = createTheme({
   breakpoints: { ...breakpoints },
   palette: { ...colors },
@@ -2621,8 +2671,8 @@ const themeLight = createTheme({
     MuiInputLabel: { ...inputLabel },
     MuiOutlinedInput: { ...inputOutlined },
     MuiTextField: { ...textField },
-    // MuiMenu: { ...menu },
-    // MuiMenuItem: { ...menuItem },
+    MuiMenu: { ...menuCom },
+    MuiMenuItem: { ...menuItem },
     MuiSwitch: { ...switchButton },
     // MuiDivider: { ...divider },
     // MuiTableContainer: { ...tableContainer },
@@ -2727,3 +2777,4 @@ const routes = [
   },
 ];
 export default FullAppUi;
+
