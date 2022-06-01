@@ -28,7 +28,7 @@ import { ThemeProvider } from "@mui/material/styles"
 import { 
   Box, Button, Card, CssBaseline, Grid,
   Link, alpha, 
-  styled, Typography, Switch, TextField, Checkbox, AppBar,
+  styled, Typography, Switch, TextField, Checkbox, AppBar, Drawer,
   // useTheme
 } from "@mui/material";
 import MenuCom from "@mui/material/Menu"
@@ -47,7 +47,7 @@ import GoogleIcon from "@mui/icons-material/Google";
 // import {
 //   AccountCircle, DonutLarge, Key, Person, Menu, Close
 // } from "@mui/icons-material";
-import PropTypes from "prop-types";
+import PropTypes, { func } from "prop-types";
 import propTypes from "prop-types";
 import Icon from '@mui/material/Icon';
 // import { green } from "@mui/material/colors";
@@ -1827,11 +1827,60 @@ const Dashboard = () => {
     </DashboardLayout>
   )
 }
-const SideNavbar = forwardRef(({
 
-})=>{
+function SideNavbar({color, brand, brandName, routes, ...rest}){
 
-});
+  const [controller, dispatch] = useMaterialUIController();
+  const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor} = controller;
+  const location = useLocation();
+  const collapseName = location.pathname.replace("/", "");
+
+  let textColor = "white";
+  return(
+    <TTBox></TTBox>
+  )
+}
+SideNavbar.defaultProps = {
+  color: "info",
+  brand: "",
+}
+SideNavbar.propTypes = {
+  color: PropTypes.oneOf([
+    "primary", "secondary", 
+    "info", "dark",
+     "success", "error", "warning",])
+}
+const SidenavibarStyle = styled(Drawer)(({theme, ownerState})=>{
+
+  const { palette, boxShadows, transitions, breakpoints, functions} = theme;
+  const { transparentSidenav, whiteSidenav, miniSidenav, darkMode} = ownerState;
+  
+  const SIDEBAR_WIDTH = 250;
+  const { transparent, gradients, white, background } = palette;
+  const { xxl } = boxShadows;
+  const { pxToRem, linearGradient } = functions;
+
+  //background
+  let backgroundValue = darkMode
+    ?background.sidenav
+    :linearGradient(gradients.dark.main, gradients.dark.status);
+  
+  //styles for the sidevan when minisidevav = false
+  const drawerCloseStyles = () =>({
+
+  })
+  //style for the sidenav miniSidenav = true
+  const drawerOpenStyles = () => ({
+
+  })
+  return{
+    "& .MuiDrawer-paper": {
+      boxShadow: xxl,
+      border: "none",
+      ...(miniSidenav?drawerCloseStyles():drawerOpenStyles()),
+    }
+  }
+})
 const handleConfiguratorOpen = () =>{console.log("tes config")}
 const ConfigButton = (
   <TTBox
@@ -1842,7 +1891,7 @@ const ConfigButton = (
     position={"fixed"}
     width="3.25rem"
     height={"3.25rem"}
-    bgcolor="white"
+    bgColor="white"
     right={"2rem"}
     bottom="2rem"
     sx={{cursor: "pointer"}}
@@ -1856,8 +1905,21 @@ const ConfigButton = (
 const ChildApp = () => {
 
   console.log("child app")
+
   const [controller] = useMaterialUIController();
-  const {darkMode} = controller;
+  const {
+    miniSidenav,
+    direction,
+    layout,
+    openConfigurator,
+    sidenavColor,
+    transparentSidenav,
+    whiteSidenav,
+    darkMode,
+  } = controller;
+
+  const handleOnMouseEnter = () => {}
+  const handleOnMouseLeave = () => {}
   return(
     // direction === "rtl" ? (
     //   <CacheProvider value={rtlCache}>
@@ -1902,7 +1964,13 @@ const ChildApp = () => {
           </>
         )}
         {layout === "vr" && <Configurator />} */}
-        {/* SideNavbar */}
+        <SideNavbar 
+            // color={sidenavColor}
+            // brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+            // brandName="Tan Tan 2"
+            // routes={routes}
+            // onMouseEnter={handleOnMouseEnter}
+           />
         {ConfigButton}
         <Routes>
           {/* {getRoutes(routes)} */}
@@ -3395,4 +3463,5 @@ const routes = [
   },
 ];
 export default FullAppUi;
+
 
