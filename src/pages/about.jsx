@@ -1,6 +1,22 @@
 //https://nordiccoder.com/blog/meo-va-thu-thuat-vs-code/
 //https://viblo.asia/p/code-nhanh-va-hieu-qua-hon-voi-vscode-tips-tricks-LzD5dJvOZjY
 //https://dynonguyen.com/toi-uu-visual-studio-code-30-extension-visual-code/
+// add vao public/index.html
+/* 
+  <link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+  />
+  <link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/icon?family=Material+Icons"
+  />
+  <link
+  href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp"
+  rel="stylesheet"
+  /> 
+*/
+
 // react import
 import { 
   createContext, 
@@ -15,6 +31,7 @@ import {
 // router import
 import { 
   BrowserRouter, 
+  NavLink, 
   Route, 
   Routes,
   useLocation,
@@ -28,14 +45,14 @@ import { ThemeProvider } from "@mui/material/styles"
 import { 
   Box, Button, Card, CssBaseline, Grid,
   Link, alpha, 
-  styled, Typography, Switch, TextField, Checkbox, AppBar, Drawer,
+  styled, Typography, Switch, TextField, Checkbox, AppBar, Drawer, Divider, Avatar, List, ListItem, ListItemIcon, ListItemText, Alert,
   // useTheme
 } from "@mui/material";
 import MenuCom from "@mui/material/Menu"
 // prop-types is a library for typechecking of props
 // chroma-js is a library for all kinds of color conversions and color scales.
-import chroma from "chroma-js";
-
+import chroma, { scale } from "chroma-js";
+import GitHubButton from "react-github-btn";
 import Container from "@mui/material/Container";
 import MuiLink from "@mui/material/Link";
 // import Favorite from '@mui/icons-material/Favorite';
@@ -44,6 +61,7 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 // import { Link } from "react-router-dom";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import GoogleIcon from "@mui/icons-material/Google";
+import TwitterIcon from "@mui/icons-material/Twitter"
 // import {
 //   AccountCircle, DonutLarge, Key, Person, Menu, Close
 // } from "@mui/icons-material";
@@ -66,11 +84,14 @@ import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import { useTheme } from "@emotion/react";
-import { border } from "@mui/system";
+import { border, height } from "@mui/system";
 
 //resouces
+//image
 const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
 const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
+const brandWhite = require("../assets/images/logo-ct.png");
+const brandDark =  require("../assets/images/logo-ct-dark.png");
 
 const Home = () => {
 
@@ -130,6 +151,30 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
   },
 }));
+const AvatarStyle = styled(Avatar)(({theme})=>{
+
+  const {palette, transitions} = theme;
+  return{
+    cursor: "pointer",
+    backgroundColor: palette.info.main,
+    transition: transitions.create(
+      ["backgroundColor","transform"],
+      {duration: 500}
+    ),
+    "&:hover":{
+      backgroundColor: palette.success.main,
+      transform: "scale(1.3)",
+    }
+  }
+})
+const TransitionEx = () => {
+
+  return(
+    <TTBox>
+      <AvatarStyle>TT</AvatarStyle>
+    </TTBox>
+  )
+}
 const TestMaterial = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
@@ -302,6 +347,7 @@ const TestMaterial = () => {
       </AppBar>
       {renderMobileMenu}
       {renderMenu}
+      <TransitionEx />
     </Box>
   );
 }
@@ -587,7 +633,7 @@ const ButtonStyle = styled(Button)(({theme, ownerState})=>{
     let colorValue = white.main;
     if(color==="white"){ colorValue = text.main}
     else if(color==="light"){ colorValue = gradients.dark.state;}
-    console.log(color.main)
+    // console.log(color.main)
     return{
       background: backgroundValue,
       color: colorValue,
@@ -882,7 +928,7 @@ const TypographyStyle = styled(Typography)(({theme, ownerState})=>{
     bold: fontWeightBold,
   };
   let fontWeightValue = fontWeights[fontWeight] && fontWeights[fontWeight]
-  console.log(gradientStyles());
+  // console.log(gradientStyles());
   return{
     opacity: opacityValue,
     textTransform: textTransformValue,
@@ -939,7 +985,7 @@ function PageLayout({ background, children }) {
 
   const [, dispatch] = useMaterialUIController();
   const location= useLocation();
-  console.log(location.pathname, location.state);
+  // console.log(location.pathname, location.state);
 
   console.log("pageLayout");
 
@@ -994,12 +1040,12 @@ function Footer({ light }) {
   const { size } = typography;
 
   return (
-    <TTBox position="absolute" width="100%" bottom={0} py={1.5}>
+    <TTBox position="absolute" width="100%" bottom={0} py={1.5} bgColor="info">
       <Container>
         <TTBox
           width="100%"
           display="flex"
-          flexDirection={{ xs: "column", md: "row" }}
+          flexDirection={{ xs: "column", xl: "row" }}
           justifyContent="space-between"
           alignItems="center"
           px={1.5}
@@ -1777,9 +1823,95 @@ const Profile = () => {
     <TTBox>Profile</TTBox>
   )
 }
+
 const Notifications = () => {
+  function alertContent(){
+    return "abcd"
+  }
+  function openSuccessSB(){
+    return "efgh"
+  }
+  function renderErrorSB(){
+    return 5
+  }
   return(
-    <TTBox>Notifications</TTBox>
+    <DashboardLayout>
+      {/* <TTBox mt={6} mb={3}> */}
+        <Grid container spacing={3} justifyContent="center" mt={6} mb={3} bgcolor="yellow">
+          <Grid item xs={12} lg={8}>
+            <Card>
+              <TTBox p={2}>
+                <TTTypography variant="h5">Alerts</TTTypography>
+              </TTBox>
+              {/* <TTBox pt={2} px={2}>
+                <Alert color="primary" dismissible>
+                  {alertContent("primary")}
+                </Alert>
+                <Alert color="secondary" dismissible>
+                  {alertContent("secondary")}
+                </Alert>
+                <Alert color="success" dismissible>
+                  {alertContent("success")}
+                </Alert>
+                <Alert color="error" dismissible>
+                  {alertContent("error")}
+                </Alert>
+                <Alert color="warning" dismissible>
+                  {alertContent("warning")}
+                </Alert>
+                <Alert color="info" dismissible>
+                  {alertContent("info")}
+                </Alert>
+                <Alert color="light" dismissible>
+                  {alertContent("light")}
+                </Alert>
+                <Alert color="dark" dismissible>
+                  {alertContent("dark")}
+                </Alert>
+              </TTBox> */}
+            </Card>
+          </Grid>
+          <Grid item xs={12} lg={8}>
+            <Card>
+              <TTBox p={2} lineHeight={0}>
+                <TTTypography variant="h5">Notifications</TTTypography>
+                <TTTypography variant="button" color="text" fontWeight="regular">
+                  Notifications on this page use Toasts from Bootstrap. Read more details here.
+                </TTTypography>
+              </TTBox>
+              <TTBox p={2}>
+                {/* <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <TTButton variant="gradient" color="success" onClick={openSuccessSB} fullWidth>
+                      success notification
+                    </TTButton>
+                    {renderSuccessSB}
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <TTButton variant="gradient" color="info" onClick={openInfoSB} fullWidth>
+                      info notification
+                    </TTButton>
+                    {renderInfoSB}
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <TTButton variant="gradient" color="warning" onClick={openWarningSB} fullWidth>
+                      warning notification
+                    </TTButton>
+                    {renderWarningSB}
+                  </Grid>
+                  <Grid item xs={12} sm={6} lg={3}>
+                    <TTButton variant="gradient" color="error" onClick={openErrorSB} fullWidth>
+                      error notification
+                    </TTButton>
+[                    {renderErrorSB}
+]                  </Grid>
+                </Grid> */}
+              </TTBox>
+            </Card>
+          </Grid>
+        </Grid>
+      {/* </TTBox> */}
+    </DashboardLayout>
   )
 }
 const Tables = () => {
@@ -1799,10 +1931,10 @@ const DashboardLayout = ({children}) => {
   },[pathname, dispatch]);
 
   return(
-    <TTBox bgColor="info" sx={({breakpoints, transitions, functions:{pxToRem}})=>({
+    <TTBox bgColor="error" sx={({breakpoints, transitions, functions:{pxToRem}})=>({
       p: 3,
       position: "relative",
-      [breakpoints.up("xl")]:{
+      [breakpoints.up("xl")]:{              //[breakpoints.up("xs")]:{
         marginLeft: miniSidenav?pxToRem(120):pxToRem(274),
         transitions: transitions.create(["margin-left", "margin-right"],{
           easing: transitions.easing.easeInOut,
@@ -1811,6 +1943,7 @@ const DashboardLayout = ({children}) => {
       }
     })}> dashboard layout
       {children}
+      <Footer />
     </TTBox>
   )
 }
@@ -1827,7 +1960,182 @@ const Dashboard = () => {
     </DashboardLayout>
   )
 }
+function sidenavLogoLabel(theme, ownerState) {
+  const { functions, transitions, typography, breakpoints } = theme;
+  const { miniSidenav } = ownerState;
 
+  const { pxToRem } = functions;
+  const { fontWeightMedium } = typography;
+
+  return {
+    ml: 0.5,
+    fontWeight: fontWeightMedium,
+    wordSpacing: pxToRem(-1),
+    transition: transitions.create("opacity", {
+      easing: transitions.easing.easeInOut,
+      duration: transitions.duration.standard,
+    }),
+
+    [breakpoints.up("xl")]: {
+      opacity: miniSidenav ? 0 : 1,
+    },
+  };
+}
+function collapseItemStyle(theme, ownerState) {
+  const { palette, transitions, breakpoints, boxShadows, borders, functions } = theme;
+  const { active, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = ownerState;
+
+  const { white, transparent, dark, grey, gradients } = palette;
+  const { md } = boxShadows;
+  const { borderRadius } = borders;
+  const { pxToRem, rgba, linearGradient } = functions;
+
+  return {
+    background: active
+      ? linearGradient(gradients[sidenavColor].main, gradients[sidenavColor].state)
+      : transparent.main,
+    color:
+      (transparentSidenav && !darkMode && !active) || (whiteSidenav && !active)
+        ? dark.main
+        : white.main,
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+    padding: `${pxToRem(8)} ${pxToRem(10)}`,
+    margin: `${pxToRem(1.5)} ${pxToRem(16)}`,
+    borderRadius: borderRadius.md,
+    cursor: "pointer",
+    userSelect: "none",
+    whiteSpace: "nowrap",
+    boxShadow: active && !whiteSidenav && !darkMode && !transparentSidenav ? md : "none",
+    [breakpoints.up("xl")]: {
+      transition: transitions.create(["box-shadow", "background-color"], {
+        easing: transitions.easing.easeInOut,
+        duration: transitions.duration.shorter,
+      }),
+    },
+
+    "&:hover, &:focus": {
+      backgroundColor: () => {
+        let backgroundValue;
+
+        if (!active) {
+          backgroundValue =
+            transparentSidenav && !darkMode
+              ? grey[300]
+              : rgba(whiteSidenav ? grey[400] : white.main, 0.2);
+        }
+
+        return backgroundValue;
+      },
+    },
+  };
+}
+
+function collapseIconBoxStyle(theme, ownerState) {
+  const { palette, transitions, borders, functions } = theme;
+  const { transparentSidenav, whiteSidenav, darkMode, active } = ownerState;
+
+  const { white, dark } = palette;
+  const { borderRadius } = borders;
+  const { pxToRem } = functions;
+
+  return {
+    minWidth: pxToRem(32),
+    minHeight: pxToRem(32),
+    color:
+      (transparentSidenav && !darkMode && !active) || (whiteSidenav && !active)
+        ? dark.main
+        : white.main,
+    borderRadius: borderRadius.md,
+    display: "grid",
+    placeItems: "center",
+    transition: transitions.create("margin", {
+      easing: transitions.easing.easeInOut,
+      duration: transitions.duration.standard,
+    }),
+
+    "& svg, svg g": {
+      color: transparentSidenav || whiteSidenav ? dark.main : white.main,
+    },
+  };
+}
+
+const collapseIconStyle = ({ palette: { white, gradients } }, { active }) => ({
+  color: active ? white.main : gradients.dark.state,
+});
+
+function collapseTextStyle(theme, ownerState) {
+  const { typography, transitions, breakpoints, functions } = theme;
+  const { miniSidenav, transparentSidenav, active } = ownerState;
+
+  const { size, fontWeightRegular, fontWeightLight } = typography;
+  const { pxToRem } = functions;
+
+  return {
+    marginLeft: pxToRem(10),
+
+    [breakpoints.up("xl")]: {
+      opacity: miniSidenav || (miniSidenav && transparentSidenav) ? 0 : 1,
+      maxWidth: miniSidenav || (miniSidenav && transparentSidenav) ? 0 : "100%",
+      marginLeft: miniSidenav || (miniSidenav && transparentSidenav) ? 0 : pxToRem(10),
+      transition: transitions.create(["opacity", "margin"], {
+        easing: transitions.easing.easeInOut,
+        duration: transitions.duration.standard,
+      }),
+    },
+
+    "& span": {
+      fontWeight: active ? fontWeightRegular : fontWeightLight,
+      fontSize: size.sm,
+      lineHeight: 0,
+    },
+  };
+}
+
+function SidenavCollapse({icon, name, active, ...rest}){
+  const [controller] = useMaterialUIController();
+  const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
+  return(
+    <ListItem component={"li"}>
+      <TTBox {...rest} sx={(theme)=>collapseItemStyle(theme,{
+        active, transparentSidenav, whiteSidenav, darkMode, sidenavColor
+      })}>
+        <ListItemIcon sx={(theme)=>collapseIconBoxStyle(theme,{
+          transparentSidenav, whiteSidenav, darkMode, active
+        })}>
+          {typeof icon === "string" ? (
+            <Icon sx={(theme) => collapseIconStyle(theme, { active })}>{icon}</Icon>
+          ) : (
+            icon
+          )}
+        </ListItemIcon>
+        <ListItemText
+          primary={name}
+          sx={(theme) =>
+            collapseTextStyle(theme, {
+              miniSidenav,
+              transparentSidenav,
+              whiteSidenav,
+              active,
+            })
+          }
+        />
+      </TTBox>
+    </ListItem>
+  )
+}
+// Setting default values for the props of SidenavCollapse
+SidenavCollapse.defaultProps = {
+  active: false,
+};
+
+// Typechecking props for the SidenavCollapse
+SidenavCollapse.propTypes = {
+  icon: PropTypes.node.isRequired,
+  name: PropTypes.string.isRequired,
+  active: PropTypes.bool,
+};
 function SideNavbar({color, brand, brandName, routes, ...rest}){
 
   const [controller, dispatch] = useMaterialUIController();
@@ -1836,8 +2144,145 @@ function SideNavbar({color, brand, brandName, routes, ...rest}){
   const collapseName = location.pathname.replace("/", "");
 
   let textColor = "white";
+  if (transparentSidenav || (whiteSidenav && !darkMode)) {
+    textColor = "dark";
+  } else if (whiteSidenav && darkMode) {
+    textColor = "inherit";
+  }
+
+  const closeSidenav = () => setMiniSidenav(dispatch, true);
+
+  useEffect(() => {
+    // A function that sets the mini state of the sidenav.
+    function handleMiniSidenav() {
+      setMiniSidenav(dispatch, window.innerWidth < 1200);
+      setTransparentSidenav(dispatch, window.innerWidth < 1200 ? false : transparentSidenav);
+      setWhiteSidenav(dispatch, window.innerWidth < 1200 ? false : whiteSidenav);
+    }
+
+    /** 
+     The event listener that's calling the handleMiniSidenav function when resizing the window.
+    */
+    window.addEventListener("resize", handleMiniSidenav);
+
+    // Call the handleMiniSidenav function to set the state with the initial value.
+    handleMiniSidenav();
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleMiniSidenav);
+  }, [dispatch, location]);
+
+  const ListRoute = routes.map(({
+    type, name, icon, title, noCollapse, key, href, route
+  })=>{
+    let ItemValue
+  
+    switch (type) {
+      case "collapse":
+        ItemValue = href
+          ?<Link key={key} href={href} target="_blank" rel="noreferrer" sx={{textDecoration:"none"}}>
+            <SidenavCollapse
+              icon={icon}
+              name={name}
+              active={key === collapseName}
+              noCollapse={noCollapse}
+            />
+          </Link>
+          :<NavLink key={key} to={route}>
+            <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
+          </NavLink>
+        break;
+      case "title":
+        ItemValue = (
+          <TTTypography
+            key={key}
+            color={textColor}
+            display="block"
+            variant="caption"
+            fontWeight="bold"
+            textTransform="uppercase"
+            pl={3}
+            mt={2}
+            mb={1}
+            ml={1}
+          >{title}</TTTypography>
+        )
+        break;
+      case "divider":
+        ItemValue = (
+          <Divider
+            key={key}
+            light={
+              (!darkMode && !whiteSidenav && !transparentSidenav) ||
+              (darkMode && !transparentSidenav && whiteSidenav)
+            }
+          />
+        )
+        break;
+      default:
+        break;
+    }
+    return ItemValue;
+  });
   return(
-    <TTBox></TTBox>
+    <SidenavibarStyle 
+      {...rest}
+      variant="permanent"
+      ownerState={{transparentSidenav, whiteSidenav, miniSidenav, darkMode}}
+    >
+      {/* sideNav header */}
+      <TTBox pt={3} pb={1} px={4} textAlign="center">
+        {/* icon close */}
+        <TTBox
+          display={{xs:"block", xl: "none"}}
+          position="absolute"
+          top={0} right={0}
+          p={1.5}
+          onClick={closeSidenav}
+          sx={{cursor:"pointer"}}
+        >
+          <TTTypography variant="h6" color="secondary">
+            <Icon sx={{ fontWeight: "bold" }}>close</Icon>
+          </TTTypography>
+        </TTBox>
+        {/* title */}
+        <TTBox component={NavLink} to="/" display="flex" alignItems="center">
+          {brand && <TTBox component="img" src={brand} alt="Brand" width="2rem" />}
+          <TTBox
+            width={!brandName && "100%"}
+            sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}
+          >
+            <TTTypography component="h6" variant="button" fontWeight="medium" color={textColor}>
+              {brandName}
+            </TTTypography>
+          </TTBox>
+        </TTBox>
+      </TTBox>
+      <Divider
+        light={
+          (!darkMode && !whiteSidenav && !transparentSidenav) ||
+          (darkMode && !transparentSidenav && whiteSidenav)
+        }
+      />
+      {/* sideNav content */}
+      <List>
+        {ListRoute}
+      </List>
+      {/* sideNav footer */}
+      <TTBox p={2} mt="auto">
+        <TTButton
+          component="a"
+          href="https://www.creative-tim.com/product/material-dashboard-pro-react"
+          target="_blank"
+          rel="noreferrer"
+          variant="gradient"
+          color={sidenavColor}
+          fullWidth
+        >
+          contact me
+        </TTButton>
+      </TTBox>
+    </SidenavibarStyle>
   )
 }
 SideNavbar.defaultProps = {
@@ -1848,31 +2293,75 @@ SideNavbar.propTypes = {
   color: PropTypes.oneOf([
     "primary", "secondary", 
     "info", "dark",
-     "success", "error", "warning",])
+    "success", "error", "warning"
+  ]),
+  brand: PropTypes.string,
+  brandName: PropTypes.string.isRequired,
+  routes: PropTypes.arrayOf(PropTypes.object).isRequired,
 }
 const SidenavibarStyle = styled(Drawer)(({theme, ownerState})=>{
 
-  const { palette, boxShadows, transitions, breakpoints, functions} = theme;
-  const { transparentSidenav, whiteSidenav, miniSidenav, darkMode} = ownerState;
-  
-  const SIDEBAR_WIDTH = 250;
+  const { palette, boxShadows, transitions, breakpoints, functions } = theme;
+  const { transparentSidenav, whiteSidenav, miniSidenav, darkMode } = ownerState;
+
+  const sidebarWidth = 250;
   const { transparent, gradients, white, background } = palette;
   const { xxl } = boxShadows;
   const { pxToRem, linearGradient } = functions;
 
-  //background
   let backgroundValue = darkMode
-    ?background.sidenav
-    :linearGradient(gradients.dark.main, gradients.dark.status);
-  
-  //styles for the sidevan when minisidevav = false
-  const drawerCloseStyles = () =>({
+    ? background.sidenav
+    : linearGradient(gradients.dark.main, gradients.dark.state);
 
-  })
+  if (transparentSidenav) {
+    backgroundValue = transparent.main;
+  } else if (whiteSidenav) {
+    backgroundValue = white.main;
+  }
+
+  // styles for the sidenav when miniSidenav={true}
+  const drawerCloseStyles = () => ({
+    background: backgroundValue,
+    transform: `translateX(${pxToRem(-320)})`,
+    transition: transitions.create("transform", {
+      easing: transitions.easing.sharp,
+      duration: transitions.duration.shorter,
+    }),
+
+    [breakpoints.up("xl")]: {
+      boxShadow: transparentSidenav ? "none" : xxl,
+      marginBottom: transparentSidenav ? 0 : "inherit",
+      left: "0",
+      width: pxToRem(96),
+      overflowX: "hidden",
+      transform: "translateX(0)",
+      transition: transitions.create(["width", "background-color"], {
+        easing: transitions.easing.sharp,
+        duration: transitions.duration.shorter,
+      }),
+    },
+  });
   //style for the sidenav miniSidenav = true
   const drawerOpenStyles = () => ({
+    background: backgroundValue,
+    transform: "translateX(0)",
+    transition: transitions.create("transform", {
+      easing: transitions.easing.sharp,
+      duration: transitions.duration.shorter,
+    }),
 
-  })
+    [breakpoints.up("xl")]: {
+      boxShadow: transparentSidenav ? "none" : xxl,
+      marginBottom: transparentSidenav ? 0 : "inherit",
+      left: "0",
+      width: sidebarWidth,
+      transform: "translateX(0)",
+      transition: transitions.create(["width", "background-color"], {
+        easing: transitions.easing.sharp,
+        duration: transitions.duration.enteringScreen,
+      }),
+    },
+  });
   return{
     "& .MuiDrawer-paper": {
       boxShadow: xxl,
@@ -1881,32 +2370,377 @@ const SidenavibarStyle = styled(Drawer)(({theme, ownerState})=>{
     }
   }
 })
-const handleConfiguratorOpen = () =>{console.log("tes config")}
-const ConfigButton = (
-  <TTBox
-    display="flex"
-    justifyContent="center"
-    shadow="sm"
-    alignItems="center"
-    position={"fixed"}
-    width="3.25rem"
-    height={"3.25rem"}
-    bgColor="white"
-    right={"2rem"}
-    bottom="2rem"
-    sx={{cursor: "pointer"}}
-    color="dark"
-    borderRadius="50%"
-    onClick={handleConfiguratorOpen}
-  >
-    <Icon fontSize="small" color="inherit">settings</Icon>
-  </TTBox>
-)
+
+const ConfigButton = ({handleConfiguratorOpen}) => {
+  return(
+    <TTBox
+      display="flex"
+      justifyContent="center"
+      shadow="sm"
+      alignItems="center"
+      position={"fixed"}
+      width="3.25rem"
+      height={"3.25rem"}
+      bgColor="white"
+      right={"2rem"}
+      bottom="2rem"
+      sx={{cursor: "pointer"}}
+      color="dark"
+      borderRadius="50%"
+      onClick={handleConfiguratorOpen}
+    >
+      <Icon fontSize="small" color="inherit">settings</Icon>
+    </TTBox>
+  )
+}
+function ConfigNavbar(){
+
+  const [controller, dispatch] = useMaterialUIController();
+  const {
+    openConfigurator,
+    fixedNavbar,
+    sidenavColor,
+    transparentSidenav,
+    whiteSidenav,
+    darkMode,
+  } = controller;
+  const [disabled, setDisabled] = useState(false);
+  const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
+
+  // Use the useEffect hook to change the button state for the sidenav type based on window size.
+  useEffect(() => {
+    // A function that sets the disabled state of the buttons for the sidenav type.
+    function handleDisabled() {
+      return window.innerWidth > 1200 ? setDisabled(false) : setDisabled(true);
+    }
+
+    // The event listener that's calling the handleDisabled function when resizing the window.
+    window.addEventListener("resize", handleDisabled);
+
+    // Call the handleDisabled function to set the state with the initial value.
+    handleDisabled();
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleDisabled);
+  }, []);
+
+  const handleCloseConfigurator = () => setOpenConfigurator(dispatch, false);
+  const handleTransparentSidenav = () => {
+    setTransparentSidenav(dispatch, true);
+    setWhiteSidenav(dispatch, false);
+  };
+  const handleWhiteSidenav = () => {
+    setWhiteSidenav(dispatch, true);
+    setTransparentSidenav(dispatch, false);
+  };
+  const handleDarkSidenav = () => {
+    setWhiteSidenav(dispatch, false);
+    setTransparentSidenav(dispatch, false);
+  };
+  const handleFixedNavbar = () => setFixedNavbar(dispatch, !fixedNavbar);
+  const handleDarkMode = () => setDarkMode(dispatch, !darkMode);
+
+  // sidenav type buttons styles
+  const sidenavTypeButtonsStyles = ({
+    functions: { pxToRem },
+    palette: { white, dark, background },
+    borders: { borderWidth },
+  }) => ({
+    height: pxToRem(39),
+    background: darkMode ? background.sidenav : white.main,
+    color: darkMode ? white.main : dark.main,
+    border: `${borderWidth[1]} solid ${darkMode ? white.main : dark.main}`,
+
+    "&:hover, &:focus, &:focus:not(:hover)": {
+      background: darkMode ? background.sidenav : white.main,
+      color: darkMode ? white.main : dark.main,
+      border: `${borderWidth[1]} solid ${darkMode ? white.main : dark.main}`,
+    },
+  });
+
+  // sidenav type active button styles
+  const sidenavTypeActiveButtonStyles = ({
+    functions: { pxToRem, linearGradient },
+    palette: { white, gradients, background },
+  }) => ({
+    height: pxToRem(39),
+    background: darkMode ? white.main : linearGradient(gradients.dark.main, gradients.dark.state),
+    color: darkMode ? background.sidenav : white.main,
+
+    "&:hover, &:focus, &:focus:not(:hover)": {
+      background: darkMode ? white.main : linearGradient(gradients.dark.main, gradients.dark.state),
+      color: darkMode ? background.sidenav : white.main,
+    },
+  });  const ItemColor = ({color}) => {
+    // console.log("color:",color);
+    return(
+      <IconButton 
+        onClick={()=>setSidenavColor(dispatch, color)}
+        sx={({
+          borders:{borderWidth}, 
+          palette:{white, dark, background},
+          transitions,
+        })=>({
+          width: "24px",
+          height: "24px",
+          padding: 0,
+          border: `${borderWidth[1]} solid ${darkMode ? background.sidenav : white.main}`,
+          borderColor: ()=>{
+            let borderColorValue = sidenavColor===color && dark.main;
+            if(darkMode===sidenavColor===color){
+              borderColorValue = white.main
+            }
+            return borderColorValue
+          },
+          transition: transitions.create("border-color", {
+            easing: transitions.easing.sharp,
+            duration: transitions.duration.shorter,
+          }),
+          backgroundImage: ({functions:{linearGradient}, palette:{gradients}})=>linearGradient(gradients[color].main, gradients[color].state),
+          "&:not(:last-child)":{ mr: 1},
+          "&:hover, &:focus, &:active": {
+            borderColor: darkMode ? white.main : dark.main,
+          },
+        })}
+      />
+    )
+  }
+  return(
+    <ConfigNavbarStyle variant="permanent" ownerState={{openConfigurator}}>
+      {/* config header */}
+      <TTBox
+        display="flex"
+        justifyContent="space-between"
+        alignItems="baseline"
+        pt={4}
+        pb={0.5}
+        px={3}
+      >
+        <TTBox>
+          <TTTypography variant={"h5"}>UI Configurator</TTTypography>
+          <TTTypography variant={"body2"} color="text">
+            See our dashboard options.
+          </TTTypography>
+        </TTBox>
+        <Icon 
+          onClick={handleCloseConfigurator}
+          sx={({typography: {size}, palette:{dark, white}})=>({
+            fontSize:  `${size.lg} !important`,
+            color: darkMode?white.main:dark.main,
+            stroke: "currentcolor",
+            strokeWidth: "2px",
+            cursor: "pointer",
+            transform: "translateY(5px)",
+          })}          
+        >close</Icon>
+      </TTBox>
+      <Divider />
+      {/* content */}
+      <TTBox pt={0.5} px={3}>
+        {/* config color */}
+        <TTBox>
+          <TTBox>
+            <TTTypography variant="h6">Sidenav Colors</TTTypography>
+          </TTBox>
+          <TTBox  display="flex" mb={0.5} justifyContent="right">
+            {sidenavColors.map((itemColor, index)=>(
+              <ItemColor color={itemColor} key={itemColor}/>
+            ))}
+          </TTBox>
+        </TTBox>
+        <Divider />
+        {/* config type*/}
+        <TTBox my={1} lineHeight={1} >
+          <TTTypography variant="h6">Sidenav Type</TTTypography>
+          <TTTypography variant="button" color="text">
+            Choose between different sidenav types.
+          </TTTypography>
+
+          <TTBox
+            sx={{
+              display: "flex",
+              mt: 2,
+              mr: 1,
+            }}
+          >
+            <TTButton
+              color="dark"
+              variant="gradient"
+              onClick={handleDarkSidenav}
+              disabled={disabled}
+              fullWidth
+              sx={
+                !transparentSidenav && !whiteSidenav
+                  ? sidenavTypeActiveButtonStyles
+                  : sidenavTypeButtonsStyles
+              }
+            >
+              Dark
+            </TTButton>
+            <TTBox sx={{ mx: 1, width: "8rem", minWidth: "8rem" }}>
+              <TTButton
+                color="dark"
+                variant="gradient"
+                onClick={handleTransparentSidenav}
+                disabled={disabled}
+                fullWidth
+                sx={
+                  transparentSidenav && !whiteSidenav
+                    ? sidenavTypeActiveButtonStyles
+                    : sidenavTypeButtonsStyles
+                }
+              >
+                Transparent
+              </TTButton>
+            </TTBox>
+            <TTButton
+              color="dark"
+              variant="gradient"
+              onClick={handleWhiteSidenav}
+              disabled={disabled}
+              fullWidth
+              sx={
+                whiteSidenav && !transparentSidenav
+                  ? sidenavTypeActiveButtonStyles
+                  : sidenavTypeButtonsStyles
+              }
+            >
+              White
+            </TTButton>
+          </TTBox>
+        </TTBox>
+        <Divider/>
+        {/* config mode navbar fixed*/}
+        <TTBox>
+          <TTTypography variant="h6">Mode</TTTypography>
+          <TTBox
+            display="flex"
+            justifyContent= "space-between"
+            alignItems= "center"
+            lineHeight={1}
+            pl={2}
+          >
+            <TTTypography variant="body2">Navbar Fixed</TTTypography>
+            <Switch checked={fixedNavbar} onChange={handleFixedNavbar}/>
+          </TTBox>
+          <TTBox
+            display="flex"
+            justifyContent= "space-between"
+            alignItems= "center"
+            lineHeight={1}
+            pl={2}
+          >
+            <TTTypography variant="body2">Light/Dark</TTTypography>
+            <Switch checked={darkMode} onChange={handleDarkMode}/>
+          </TTBox>
+        </TTBox>
+      </TTBox>
+      <Divider/>
+      {/* config footer */}
+      <TTBox px={3}>
+        <TTBox mt={2} mb={2}>
+            <TTButton
+              component={Link}
+              href="https://www.creative-tim.com/learning-lab/react/quick-start/material-dashboard/"
+              target="_blank"
+              rel="noreferrer"
+              color={darkMode ? "light" : "dark"}
+              variant="outlined"
+              fullWidth
+            >
+              view documentation
+            </TTButton>
+        </TTBox>
+        <TTBox display="flex" justifyContent="center">
+          <GitHubButton
+            href="https://github.com/creativetimofficial/material-dashboard-react"
+            data-icon="octicon-star"
+            data-size="large"
+            data-show-count="true"
+            aria-label="Star creativetimofficial/material-dashboard-react on GitHub"
+          >
+            Star
+          </GitHubButton>
+        </TTBox>
+        <TTBox mt={2} textAlign="center">
+          <TTBox mb={0.5}>
+            <TTTypography variant="h6">Thank you for sharing!</TTTypography>
+          </TTBox>
+
+          <TTBox display="flex" justifyContent="center">
+            <TTBox mr={1.5}>
+              <TTButton
+                component={Link}
+                href="//twitter.com/intent/tweet?text=Check%20Material%20Dashboard%20React%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23react%20%mui&url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fmaterial-dashboard-react"
+                target="_blank"
+                rel="noreferrer"
+                color="dark"
+              >
+                <TwitterIcon />
+                &nbsp; Tweet
+              </TTButton>
+            </TTBox>
+            <TTButton
+              component={Link}
+              href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/material-dashboard-react"
+              target="_blank"
+              rel="noreferrer"
+              color="dark"
+            >
+              <FacebookIcon />
+              &nbsp; Share
+            </TTButton>
+          </TTBox>
+        </TTBox>
+      </TTBox>
+    </ConfigNavbarStyle>
+  )
+}
+const ConfigNavbarStyle = styled(Drawer)(({theme, ownerState})=>{
+
+  const { boxShadows, functions, transitions} = theme;
+  const { lg } = boxShadows;
+  const { pxToRem } = functions;
+  const {openConfigurator} = ownerState;
+  console.log("openConfigurator:", openConfigurator);
+  const configuratorWidth = 360;
+   // drawer styles when openConfigurator={true}
+  const drawerOpenStyles = () => ({
+    width: configuratorWidth,
+    left: "initial",
+    right: 0,
+    transition: transitions.create("right", {
+      easing: transitions.easing.sharp,
+      duration: transitions.duration.short,
+    }),
+  });
+  // drawer styles when openConfigurator={false}
+  const drawerCloseStyles = () => ({
+    left: "initial",
+    right: pxToRem(-350),
+    transition: transitions.create("all", {
+      easing: transitions.easing.sharp,
+      duration: transitions.duration.short,
+    }),
+  });
+  return{
+    "& .MuiDrawer-paper": {
+      height: "100vh",
+      margin: 0,
+      padding: `0 ${pxToRem(10)}`,
+      borderRadius: 0,
+      boxShadow: lg,
+      overflowY: "auto",
+      ...(openConfigurator?drawerOpenStyles():drawerCloseStyles())
+    },
+  }
+})
+
 const ChildApp = () => {
 
   console.log("child app")
 
-  const [controller] = useMaterialUIController();
+  const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
     direction,
@@ -1918,8 +2752,49 @@ const ChildApp = () => {
     darkMode,
   } = controller;
 
-  const handleOnMouseEnter = () => {}
-  const handleOnMouseLeave = () => {}
+  const [ isOnMouseEnter, setOnMouseEnter] = useState(false);
+
+  
+
+  // Open sidenav when mouse enter on mini sidenav
+  const handleOnMouseEnter = () => {
+    if (miniSidenav && !isOnMouseEnter) {
+      setMiniSidenav(dispatch, false);
+      setOnMouseEnter(true);
+    }
+  };
+
+  // Close sidenav when mouse leave mini sidenav
+  const handleOnMouseLeave = () => {
+    if (isOnMouseEnter) {
+      setMiniSidenav(dispatch, true);
+      setOnMouseEnter(false);
+    }
+  };
+
+  // Change the openConfigurator state
+  const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
+  // const ConfigButton = (
+  //   <TTBox
+  //     display="flex"
+  //     justifyContent="center"
+  //     shadow="sm"
+  //     alignItems="center"
+  //     position={"fixed"}
+  //     width="3.25rem"
+  //     height={"3.25rem"}
+  //     bgColor="white"
+  //     right={"2rem"}
+  //     bottom="2rem"
+  //     sx={{cursor: "pointer"}}
+  //     color="dark"
+  //     borderRadius="50%"
+  //     onClick={handleConfiguratorOpen}
+  //   >
+  //     <Icon fontSize="small" color="inherit">settings</Icon>
+  //   </TTBox>
+  // )
+  
   return(
     // direction === "rtl" ? (
     //   <CacheProvider value={rtlCache}>
@@ -1949,29 +2824,21 @@ const ChildApp = () => {
     // ) : (
       <ThemeProvider theme={darkMode?themeDark:themeLight}>
         <CssBaseline />
-        {/* {layout === "dashboard" && (
+        {layout === "dashboard" && (
           <>
-            <Sidenav
+            <SideNavbar 
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-              brandName="Material Dashboard 2"
+              brandName="Learn Japanese"
               routes={routes}
               onMouseEnter={handleOnMouseEnter}
-              onMouseLeave={handleOnMouseLeave}
+              onMouseLeave={handleOnMouseLeave}            
             />
-            <Configurator />
-            {configsButton}
+            <ConfigNavbar />
+            <ConfigButton handleConfiguratorOpen={handleConfiguratorOpen}/>
           </>
         )}
-        {layout === "vr" && <Configurator />} */}
-        <SideNavbar 
-            // color={sidenavColor}
-            // brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-            // brandName="Tan Tan 2"
-            // routes={routes}
-            // onMouseEnter={handleOnMouseEnter}
-           />
-        {ConfigButton}
+        {layout === "vr" && <ConfigNavbar />}
         <Routes>
           {/* {getRoutes(routes)} */}
           {/* <Route path="*" element={<Navigate to="/dashboard" />} /> */}
@@ -1981,6 +2848,7 @@ const ChildApp = () => {
           <Route path="/signup" element={<SignUp/>}/>
           <Route path="/reset" element={<SignReset/>}/>
           <Route path="/dashboard" element={<Dashboard />}/>
+          <Route path="/notifi" element={<Notifications/>}/>
         </Routes>
       </ThemeProvider>
   )
@@ -3309,6 +4177,75 @@ const checkbox = {
     },
   },
 };
+// const { white } = colors;
+// const { borderRadius } = borders;
+
+const sidenav = {
+  styleOverrides: {
+    root: {
+      width: pxToRem(250),
+      whiteSpace: "nowrap",
+      border: "none",
+    },
+
+    paper: {
+      width: pxToRem(250),
+      backgroundColor: white.main,
+      height: `calc(100vh - ${pxToRem(32)})`,
+      margin: pxToRem(16),
+      borderRadius: borderRadius.xl,
+      border: "none",
+    },
+
+    paperAnchorDockedLeft: {
+      borderRight: "none",
+    },
+  },
+};
+// const { dark, transparent, white } = colors;
+
+const divider = {
+  styleOverrides: {
+    root: {
+      backgroundColor: transparent.main,
+      backgroundImage: `linear-gradient(to right, ${rgba(dark.main, 0)}, ${rgba(
+        dark.main,
+        0.4
+      )}, ${rgba(dark.main, 0)}) !important`,
+      height: pxToRem(1),
+      margin: `${pxToRem(16)} 0`,
+      borderBottom: "none",
+      opacity: 0.25,
+    },
+
+    vertical: {
+      backgroundColor: transparent.main,
+      backgroundImage: `linear-gradient(to bottom, ${rgba(dark.main, 0)}, ${rgba(
+        dark.main,
+        0.4
+      )}, ${rgba(dark.main, 0)}) !important`,
+      width: pxToRem(1),
+      height: "100%",
+      margin: `0 ${pxToRem(16)}`,
+      borderRight: "none",
+    },
+
+    light: {
+      backgroundColor: transparent.main,
+      backgroundImage: `linear-gradient(to right, ${rgba(white.main, 0)}, ${white.main}, ${rgba(
+        white.main,
+        0
+      )}) !important`,
+
+      "&.MuiDivider-vertical": {
+        backgroundImage: `linear-gradient(to bottom, ${rgba(white.main, 0)}, ${white.main}, ${rgba(
+          white.main,
+          0
+        )}) !important`,
+      },
+    },
+  },
+};
 const themeDark = createTheme({
   breakpoints: { ...breakpoints },
   palette: { ...colors },
@@ -3344,7 +4281,7 @@ const themeLight = createTheme({
         ...container,
       },
     },
-    // MuiDrawer: { ...sidenav },
+    MuiDrawer: { ...sidenav },
     // MuiList: { ...list },
     // MuiListItem: { ...listItem },
     // MuiListItemText: { ...listItemText },
@@ -3360,7 +4297,7 @@ const themeLight = createTheme({
     MuiMenu: { ...menuCom },
     MuiMenuItem: { ...menuItem },
     MuiSwitch: { ...switchButton },
-    // MuiDivider: { ...divider },
+    MuiDivider: { ...divider },
     // MuiTableContainer: { ...tableContainer },
     // MuiTableHead: { ...tableHead },
     // MuiTableCell: { ...tableCell },
@@ -3434,7 +4371,7 @@ const routes = [
     name: "Notifications",
     key: "notifications",
     icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
+    route: "/notifi",
     component: <Notifications />,
   },
   {
@@ -3450,7 +4387,7 @@ const routes = [
     name: "Sign In",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
-    route: "/authentication/sign-in",
+    route: "/signin",
     component: <SignIn />,
   },
   {
@@ -3458,7 +4395,7 @@ const routes = [
     name: "Sign Up",
     key: "sign-up",
     icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/authentication/sign-up",
+    route: "/signup",
     component: <SignUp />,
   },
 ];
