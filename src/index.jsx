@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from "./app.jsx";
 import { HelmetProvider } from 'react-helmet-async';
 
+
 /**
 * Root of react site 
 *
@@ -15,7 +16,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
     <HelmetProvider>
-      <FullApp
+      <FullApp />
     </HelmetProvider>
   </React.StrictMode>,
 );
