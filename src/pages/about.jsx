@@ -9701,3 +9701,5 @@ export default FullAppUi;
 //     console.log(window.performance.measure(`${name}Update`, `${name}UpdateStart`, `${name}UpdateEnd`))
 //   }
 // }
+// REACT_APP_TEST_ALPHAB = ABCDEF
+// REACT_APP_TEST_NUMBER = 123456
