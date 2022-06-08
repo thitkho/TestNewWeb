@@ -9703,3 +9703,41 @@ export default FullAppUi;
 // }
 // REACT_APP_TEST_ALPHAB = ABCDEF
 // REACT_APP_TEST_NUMBER = 123456
+//life circle
+
+const MeasureRenderHook = (props) =>{
+
+  //initialization
+  // setup props and state
+  // const [mount, setMount] = useState(false);
+  // const [count, setCount] = useState(0);
+  //Mounting
+  //  componentWillMount
+  // useEffect(()=>{})
+  //  -> 
+  //  render
+  //  -> 
+  //  componentDidMount
+  const {name} = props
+  console.log(name);
+  useEffect(() => {
+    console.log('mounted');
+    window.performance.mark(`${name}MountEnd`)
+    console.log(window.performance.mark(`${name}MountEnd`).duration)
+  });
+
+  //Update
+  //(props)  
+  // componentWillReceiveProps -> 
+  // shouldComponentUpdate -> 
+  // componentWillUpdate -> render -> componentDidUpdate
+  //(states)                              
+  // shouldComponentUpdate -> 
+  // componentWillUpdate -> render -> componentDidUpdate
+  
+  //Unmounting
+  // componentWillUnmount
+
+
+  return props.children;
+}
