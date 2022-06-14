@@ -7016,7 +7016,7 @@ const ChildApp = () => {
 
   
   return(
-    <MeasureRender name="ChildApp">
+    // <MeasureRender name="ChildApp">
     <ThemeProvider theme={darkMode?themeDark:themeLight}>
       <CssBaseline />
       {layout === "dashboard" && (
@@ -7054,7 +7054,7 @@ const ChildApp = () => {
         <Route path="/billing" element={<Billing />}/>
       </Routes>
     </ThemeProvider>
-    </MeasureRender>
+    // </MeasureRender>
   )
 }
 const FullAppUi = () => {
@@ -10635,3 +10635,5 @@ function Component(props) {
 //https://dev.to/vcnsiqueira/react-authentication-tutorial-with-firebase-v9-and-firestore-id6
 //https://github.com/gitdagray/react_redux_toolkit
 //https://github.com/sanderdebr/redux-crud-tutorial/tree/master/src/features/users
+//https://medium.com/exelerate/the-simplest-way-to-combine-react-redux-and-firestore-typescript-353bea49cdbd
+//https://zenn.dev/aono/articles/84964fae727445
