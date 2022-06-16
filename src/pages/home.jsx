@@ -3,9 +3,8 @@
 
 import {
   BrowserRouter,
-  Switch,
   Route,
-  Redirect
+  Routes,
 } from "react-router-dom";
 
 import Container from '@mui/material/Container';
@@ -13,8 +12,26 @@ import Container from '@mui/material/Container';
 
 //
 import { Provider } from "react-redux";
-import { configureStore, createSlice, ThunkAction } from "@reduxjs/toolkit";
-import thunk from "redux-thunk";
+import { configureStore, createSlice} from "@reduxjs/toolkit";
+import  thunk  from 'redux-thunk';
+import  {initializeApp}  from 'firebase/app';
+import  logger  from 'redux-logger';
+import { useEffect, useState } from 'react';
+import { getFirestore } from "firebase/firestore";
+import { useRef } from 'react';
+import { useDispatch } from 'react-redux';
+const firebaseConfig2 = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGE_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  mesurentId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+}
+const firebase = initializeApp(firebaseConfig2);
+const db = getFirestore(firebase);
+
 const CollectionListener = () => {
 
   return(
@@ -38,6 +55,8 @@ const Navbar = () => {
   )
 }
 const Home = () => {
+  const [isLoading, setLoading] = useState(false);
+  const [isError, setError] = useState("huhu")
   return(
     <div>Home</div>
   )
@@ -79,55 +98,118 @@ const createGenericSlice = ({
   })
 }
 //const { loading, success, error} = createGenericSlice.action;
+const initUser = {
+  ...GenericState,
+  data:[
+    {
+      id: 1,
+      name: "",
+      email: "abc@abc.com"
+    }
+  ]
+}
 const userSlice = createGenericSlice({
-
+  name: "user",
+  initialState: initUser,
+  reducers: {
+    success(state, action){
+      console.log(state.email);
+    }
+  }
 });
 const { userReducer } = userSlice.reducer;
+const initNotification = {
+  ...GenericState,
+  data: [
+    {
+      id: 1,
+      title: "",
+      description: "",
+      type: "",
+      createdAt: "",
+      subcollections: []
+    }
+  ]
+}
 const notificationSlice = createGenericSlice({
-
+  name: "notifi",
+  initialState: initNotification,
+  reducers:{},
 });
 const { notificationReducer } = notificationSlice.reducer;
+const initDocument = {
+  id: 1,
+  field: "column",
+}
 const documentExampleSlice = createGenericSlice({
-
+  name: "document",
+  initialState: initDocument,
+  reducers: {}
 })
 const { documentExampleReducer } = documentExampleSlice.reducer;
 
 const store = configureStore({
   reducer:{
-    notification: notificationReducer,
-    documentExample: documentExampleReducer,
-    user: userReducer
+    notification: notificationSlice.reducer,
+    documentExample: documentExampleSlice.reducer,
+    user: userSlice.reducer
   },
+  middleware:[logger, thunk]
 });
 const RootDispatch = store.dispatch;
 const RootState = store.getState;
-const AppThunk = ThunkAction();
+//hook
+const ListenerState ={
+  name: "",
+  unsubscribe: () => {}
+}
+const useFirestore = (path) =>{
+
+  const collListenerRef = useRef([]);
+  const docListenerRef = useRef([]);
+  const lastDocRef = useRef([]);
+
+  useEffect(()=>{
+
+    return()=>{
+      collListenerRef.current.forEach(listener=>{listener.unsubscribe()});
+      docListenerRef.current.forEach(listener => {listener.unsubscribe()});
+    }
+  },[collListenerRef]);
+
+  const dispatch = useDispatch();
+  
+  const collection = () => {}
+  const doc = () => {}
+  const id = () => {}
+  const create = () => {}
+  const update = () => {}
+  const remove = () => {}
+  const unsubscribe = () => {}
+  return{
+    collection, doc, id, create, update, remove, unsubscribe
+  }
+}
 const ChildCRUD = () => {
 
   return(
     <BrowserRouter>
-      <div>
         <Navbar />
         <Container>
-          <Route
-              exact
-              path="/"
-              element = {<Home/>}
-          />
-          <Route path="/home">
-            <Home />
+        <Routes>
+          <Route path="/"  element = {<Home/>}/>
+          <Route path="/collection" element={<CollectionListener />}>    
           </Route>
-          <Route path="/collection">
-            <CollectionListener />
+          <Route path="/doc" element={<DocListener />}>
+            
           </Route>
-          <Route path="/doc">
-            <DocListener />
+          <Route path="/lazy" element={<LazyLoad />}>
+            
           </Route>
-          <Route path="/">
-            <LazyLoad />
-          </Route>
+        </Routes>
+
         </Container>
-      </div>
+
     </BrowserRouter>
   )
 }
