@@ -184,11 +184,11 @@ import { configureStore, createSlice } from '@reduxjs/toolkit';
 // const logoSlack = require("../assets/images/small-logos/logo-slack.svg");
 // const logoSpotify = require("../assets/images/small-logos/logo-spotify.svg");
 
-// const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
-// const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
+const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
+const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
 
-const bgImage = require("../assets/images/bg/bg_boat_2.jpeg");
-const bgImage_su = require("../assets/images/bg/bg_boat_2.jpeg");
+//const bgImage = require("../assets/images/bg/bg_boat_2.jpeg");
+//const bgImage_su = require("../assets/images/bg/bg_boat_2.jpeg");
 const brandWhite = require("../assets/images/logo-ct.png");
 const brandDark =  require("../assets/images/logo-ct-dark.png");
 // const team2 = require("../assets/images/team-2.jpg");
@@ -7078,7 +7078,9 @@ export const PrivateRoute = ({children}) => {
   if(loading){
       return(<p>Checking Authentication</p>)
   }
-
+  // if(user){
+  //     return<Navigate to={"/login"} state={{from: location}}/>
+  // }
   return user?children:<Navigate to={"/login"} state={{from: location}}/>;
 }
 export const PublicRoute = () => {
@@ -7133,7 +7135,7 @@ const ChildApp = () => {
 
   
   return(
-    <MeasureRender name="ChildApp">
+    // <MeasureRender name="ChildApp">
     <ThemeProvider theme={darkMode?themeDark:themeLight}>
       <CssBaseline />
       {layout === "dashboard" && (
@@ -7172,7 +7174,7 @@ const ChildApp = () => {
         <Route path="/plan" element = { <Plan/>}/>
       </Routes>
     </ThemeProvider>
-    </MeasureRender>
+    // </MeasureRender>
   )
 }
 const FullAppUi = () => {
@@ -10752,4 +10754,6 @@ function Component(props) {
 // export default ReduxPage;
 //https://dev.to/vcnsiqueira/react-authentication-tutorial-with-firebase-v9-and-firestore-id6
 //https://github.com/gitdagray/react_redux_toolkit
-//https://github.com/sanderdebr/redux-crud-tutorial/tree/master/src/features/users
+//https://github.com/sanderdebr/redux-crud-tutorial/tree/master/src/features/users 
+//https://medium.com/exelerate/the-simplest-way-to-combine-react-redux-and-firestore-typescript-353bea49cdbd
+//https://zenn.dev/aono/articles/84964fae727445
