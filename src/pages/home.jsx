@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 
 import Container from '@mui/material/Container';
-
+import moment from 'moment';
 
 //
 import { Provider } from "react-redux";
@@ -54,12 +54,140 @@ const Navbar = () => {
     <div>Navbar</div>
   )
 }
+const users = [
+  {
+    id: '5e884ff1b51cc1956a5avgc0',
+    name: 'Naum',
+    email: 'naum@exelerate.me'
+  },
+  {
+    id: '5e883xf1b51cc1956avl1ec0',
+    name: 'Ilcho',
+    email: 'ilcho@exelerate.me'
+  },
+  {
+    id: '5e8453f1b51cc195hs5a1ec0',
+    name: 'Elena',
+    email: 'elena@exelerate.me'
+  },
+  {
+    id: '5e1283f1b51cc1956fga1ec0',
+    name: 'Ivan',
+    email: 'ivan@exelerate.me'
+  },
+  {
+    id: '5e8883f1b51cc19565la1ec0',
+    name: 'Zoki',
+    email: 'zoki@exelerate.me'
+  },
+  {
+    id: '5e88sdf1b51cc1956a5a1ec0',
+    name: 'Toshe',
+    email: 'toshe@exelerate.me'
+  },
+  {
+    id: '5e8883f1bfgcc1956a5a1ec0',
+    name: 'Boban',
+    email: 'boban@exelerate.me'
+  },
+];
+const notifications = [
+  {
+    id: '5e8883f1b51cc1956a5a1ec0',
+    createdAt: moment()
+    .subtract(2, 'hours')
+    .toDate(),
+    description: 'Dummy text',
+    title: 'Your order is placed',
+    type: 'order_placed'
+  },
+  {
+    id: '5e8883f7ed1486d665d8be1e',
+    createdAt: moment()
+    .subtract(1, 'day')
+    .toDate(),
+    description: 'You have 32 unread messages',
+    title: 'New message received',
+    type: 'new_message'
+  },
+  {
+    id: '5e8883fca0e8612044248ecf',
+    createdAt:  moment()
+    .subtract(3, 'days')
+    .toDate(),
+    description: 'Dummy text',
+    title: 'Your item is shipped',
+    type: 'item_shipped'
+  },
+  {
+    id: '5e88840187f6b09b431bae68',
+    createdAt: moment()
+    .subtract(7, 'days')
+    .toDate(),
+    description: 'You have 32 unread messages',
+    title: 'New message received',
+    type: 'new_message'
+  },
+  {
+    id: 'ge88840187f6b09b401bae68',
+    createdAt: moment()
+    .subtract(7, 'days')
+    .toDate(),
+    description: 'You have 32 unread messages',
+    title: 'Your item is too large',
+    type: 'error_shipment'
+  }
+];
 const Home = () => {
-  const [isLoading, setLoading] = useState(false);
-  const [isError, setError] = useState("huhu")
-  return(
-    <div>Home</div>
-  )
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const addData = async () => {
+    setLoading(true);
+    for (const not of notifications) {
+      await db.collection('mode/development/notifications').doc(not.id).set(not)
+        .then(() => {
+          setError('');
+          console.log('Mock data added!');
+        })
+        .catch(e => {
+          console.log('error adding mock data', e);
+          setError(e.message);
+        });
+    }
+    for (const user of users) {
+      await db.collection('mode/development/users').doc(user.id).set(user)
+        .then(() => {
+          setError('');
+          console.log('Mock data added!');
+        })
+        .catch(e => {
+          console.log('error adding mock data', e);
+          setError(e.message);
+        });
+    }
+    await db.collection('mode/development/examples').doc('Documentstandeptrai').set({
+      field: 'valueee'
+    })
+    setLoading(false);
+  }
+
+  return (
+    <div >
+        <header >
+        <hr></hr>
+        <hr></hr>
+        
+        <p>Create firebase project, firebase web app and a database, then add the app config in the .env file</p>
+
+        <p>When you are done click the button to add mock data to your firebase firestore database.</p>
+        <button disabled={loading} onClick={addData} size="lg">Add mock data</button>
+        {error && (
+            <p>{error}</p>
+        )}
+        </header>
+    </div>
+  );
 }
 
 const STATUS = {
