@@ -1,25 +1,26 @@
 //https://medium.com/exelerate/the-simplest-way-to-combine-react-redux-and-firestore-typescript-353bea49cdbd
 //https://zenn.dev/aono/articles/84964fae727445
-
+//https://github.com/Rajatgms/react-shop/tree/master/src/slice
 import {
   BrowserRouter,
   Route,
   Routes,
+  useNavigate,
 } from "react-router-dom";
-
 import Container from '@mui/material/Container';
 import moment from 'moment';
 
 //
-import { Provider } from "react-redux";
-import { configureStore, createSlice} from "@reduxjs/toolkit";
+import { Provider, useSelector } from "react-redux";
+import { combineReducers, configureStore, createSlice} from "@reduxjs/toolkit";
 import  thunk  from 'redux-thunk';
 import  {initializeApp}  from 'firebase/app';
 import  logger  from 'redux-logger';
 import { useEffect, useState } from 'react';
-import { getFirestore } from "firebase/firestore";
+import { addDoc, collection, getFirestore, setDoc, updateDoc } from "firebase/firestore";
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
+import { Button, Card } from "@mui/material";
 const firebaseConfig2 = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -33,9 +34,87 @@ const firebase = initializeApp(firebaseConfig2);
 const db = getFirestore(firebase);
 
 const CollectionListener = () => {
+  const initData = {
+    title: "",
+    description: ""
+  }
+  const [data, setData] = useState(initData);
 
-  return(
-    <div>CollectionListerner</div>
+  const {notifications, loading, error} = useSelector((state) => ({
+      notifications: state.notification.data,
+      loading: state.notification.status === STATUS.Loading,
+      error: state.notification.errors
+  }))
+  // const firestore = useFirestore<Notification[]>('notifications');
+  const firestore = useFirestore('notification');
+  useEffect(() => {
+      firestore.collection(notificationSlice.actions, {listen: true});
+  }, [])
+
+  const handleSubmit = (e) => {
+      e.preventDefault();
+      if (!data.title || !data.description) return;
+      db.collection('mode/development/notifications')
+          .add({
+              title: data.title,
+              description: data.description,
+              createdAt: new Date(),
+              type: 'order_placed'
+      }).then().catch(e => console.log(e));
+  }
+
+  return (
+      <>
+      <div>
+          <div>
+              <div>
+                  {loading && (
+                      <p>Loading...</p>
+                  )}
+                  {(!loading && !notifications?.length) && (
+                      <>
+                      <p>There is not data in your database.</p>
+                      <p>Go to home page and click the button Add mock data or add manually through the form.</p>
+                      </>
+                  )}
+                  {error && (
+                      <p>{error}</p>
+                  )}
+                  {notifications && (
+                      notifications.map(n => (
+                          <div key={n.id} style={{ width: '18rem' }}>
+                              <div>
+                                  <label>{n.title}</label>
+                                  <label className="mb-2 text-muted">{n.createdAt}</label>
+                                  <label>
+                                      {n.description}
+                                  </label>
+                              </div>
+                          </div>
+                      ))    
+                  )}
+              </div>
+              <div>
+                  <form onSubmit={handleSubmit}>
+                    <form controlId="formBasicEmail">
+                      <label>Title</label>
+                      <input onChange={(e) => setData({...data, title: e.target.value})} type="text" placeholder="Enter title" />
+                    </form>
+                    <br></br>
+                    <form controlId="formBasicPassword">
+                        <label>Description</label>
+                        <input onChange={(e) => setData({...data, description: e.target.value})} type="text" placeholder="Description" />
+                    </form>
+                        <br></br>
+                    <Button variant="primary" type="submit">
+                        Add
+                    </Button>
+                  </form>
+              </div>
+          </div>
+          
+      </div>
+      </>
   )
 }
 const DocListener = () => {
@@ -171,11 +250,16 @@ const Home = () => {
     })
     setLoading(false);
   }
-
+  const firestore = useFirestore('notifications');
+  const navi = useNavigate();
+  
   return (
     <div >
         <header >
+        <label>test id: {firestore.id()}</label>
         <hr></hr>
+        <button onClick={()=>navi("/collection")}>collection page</button>
+        <button onClick={()=>navi("/doc")}>doc page</button>
         <hr></hr>
         
         <p>Create firebase project, firebase web app and a database, then add the app config in the .env file</p>
@@ -200,13 +284,13 @@ const GenericState = {
   status: "",
   error: ()=>{}
 }
-const createGenericSlice = ({
+function createGenericSlice({
   name = 'Generic',
   initialState = GenericState,
   reducers
-}) => {
+}){
 
-  return createSlice({
+  createSlice({
     name,
     initialState,
     reducers: {
@@ -226,6 +310,7 @@ const createGenericSlice = ({
   })
 }
 //const { loading, success, error} = createGenericSlice.action;
+
 const initUser = {
   ...GenericState,
   data:[
@@ -236,8 +321,8 @@ const initUser = {
     }
   ]
 }
-const userSlice = createGenericSlice({
-  name: "user",
+const userSlice = createSlice({
+  name: 'user',
   initialState: initUser,
   reducers: {
     success(state, action){
@@ -245,9 +330,8 @@ const userSlice = createGenericSlice({
     }
   }
 });
-const { userReducer } = userSlice.reducer;
+const userReducer = userSlice.reducer;
 const initNotification = {
-  ...GenericState,
   data: [
     {
       id: 1,
@@ -259,12 +343,25 @@ const initNotification = {
     }
   ]
 }
-const notificationSlice = createGenericSlice({
+const notificationSlice = createSlice({
   name: "notifi",
   initialState: initNotification,
-  reducers:{},
+  reducers:{
+    success: {
+      reducer: (state, action) => {
+        state.data = action.payload;
+        state.status = STATUS.Done;
+      },
+      prepare: (notifications) => {
+        const mapped = notifications.map(n => {
+          return {...n, createdAt: (n.createdAt).toDate().toDateString()}
+        })
+        return {payload: mapped};
+      }
+    }
+  },
 });
-const { notificationReducer } = notificationSlice.reducer;
+//const { notificationReducer } = notificationSlice.reducer;
 const initDocument = {
   id: 1,
   field: "column",
@@ -274,24 +371,115 @@ const documentExampleSlice = createGenericSlice({
   initialState: initDocument,
   reducers: {}
 })
-const { documentExampleReducer } = documentExampleSlice.reducer;
+//const { documentExampleReducer } = documentExampleSlice.reducer;
 
+// const rootReducer = combineReducers({
+//   // notification: notificationSlice.reducer,
+//   // documentExample: documentExampleSlice.reducer,
+//   user: userReducer,
+// })
+const initPerson = {
+  name: "tan dep trai",
+  age: 30,
+}
+const DecrementAge = (state) => {
+  state.age--
+}
+const PersonSlice = createSlice({
+  name: "person",
+  initialState: initPerson,
+  reducers:{//reducer + action
+    incrementAge(state){state.age++},
+    de: DecrementAge,
+    changeName: (state, action)=>{
+      state.name = action.payload
+    }
+  }
+})
+
+const {incrementAge, changeName, de} = PersonSlice.actions;
+const PersonReducer = PersonSlice.reducer;
+//redux: store
+const StateRoot = {
+  person: initPerson,
+  notif: initNotification,
+}
+
+const reducerRoot = combineReducers({
+  notifi: notificationSlice.reducer,
+  person: PersonReducer,
+  user: userReducer,
+})
 const store = configureStore({
-  reducer:{
-    notification: notificationSlice.reducer,
-    documentExample: documentExampleSlice.reducer,
-    user: userSlice.reducer
-  },
-  middleware:[logger, thunk]
+  reducer: reducerRoot,
+  preloadedState: StateRoot
 });
-const RootDispatch = store.dispatch;
-const RootState = store.getState;
+// const RootDispatch = store.dispatch;
+//const RootState = store.getState(State);
 //hook
 const ListenerState ={
   name: "",
   unsubscribe: () => {}
 }
-const useFirestore = (path) =>{
+const getFirestoreRef = (path) => {
+  const basePath = 'mode/development';
+  console.log(`${basePath}/${path}`);
+  return collection(db, `${basePath}/${path}`);
+}
+const collectionApi = (
+  query,
+  actions,
+  dispatch,
+  collectionListenersRef,
+  lastDocRef,
+  options
+) => {
+  dispatch(actions.loading());
+  if (options && options?.listen) {
+      const listener = query.onSnapshot(
+          querySnapshot => {
+              const data = [];
+              if (querySnapshot.empty) {
+                  dispatch(actions?.success([]));
+                  return;
+              }
+              querySnapshot.forEach(doc =>
+                  data.push({ id: doc.id, ...doc.data() })
+              );
+              console.log('test', data);
+              dispatch(actions?.success(data));
+              if (options.lazyLoad) {
+                  lastDocRef.current = querySnapshot.docs[querySnapshot.docs.length - 1];
+              }
+          },
+          error => {
+              dispatch(actions?.error(error.message));
+              console.log('collection streaming error', error.message);
+          }
+      );
+      collectionListenersRef.current.push({name: options.listenerName, unsubscribe: listener});
+  } else {
+      query
+          .get()
+          .then(querySnapshot => {
+              const data = [];
+              querySnapshot.forEach(doc =>
+                  data.push(({ id: doc.id, ...doc.data() } ) )
+              );
+              dispatch(actions?.success((data )));
+              if (options && options.lazyLoad) {
+                  lastDocRef.current = querySnapshot.docs[querySnapshot.docs.length - 1];
+              }
+          })
+          .catch(error => {
+              console.log('collection get error', error.message);
+              dispatch(actions?.error(error.message));
+          });
+  }
+  
+}
+
+const useFirestore = (path) => {
 
   const collListenerRef = useRef([]);
   const docListenerRef = useRef([]);
@@ -306,18 +494,69 @@ const useFirestore = (path) =>{
   },[collListenerRef]);
 
   const dispatch = useDispatch();
-  
-  const collection = () => {}
+  const getQuery = (collection , options) => {
+    const baseQuery = getFirestoreRef(collection);
+    let query = baseQuery;
+    if (options && options.queries) {
+        const { queries } = options;
+        queries.forEach(({ attribute, operator, value }) => {
+        query = query.where(attribute, operator, value);
+        });
+    }
+
+    if (options && options.sort) {
+        const { attribute, order } = options.sort;
+        query = query.orderBy(attribute, order);
+    }
+
+    if (options && options.limit) {
+        query = query.limit(options.limit);
+    }
+
+    return query;
+};
+  const collection = (actions, options) => {
+    let query = getQuery(path, options);
+
+    collectionApi(query, actions, dispatch, collListenerRef, lastDocRef, options);
+    
+    if (options?.lazyLoad) {
+        return {
+            loadMore: (limit) => {
+                limit && (query = getQuery(path, {...options, limit}));
+                query = query.startAfter(lastDocRef.current);
+                collectionApi(query, actions, dispatch, collListenerRef, lastDocRef, options);
+            }
+        }
+    }
+  }
   const doc = () => {}
-  const id = () => {}
-  const create = () => {}
-  const update = () => {}
-  const remove = () => {}
-  const unsubscribe = () => {}
+
+  const id = () => {
+    const ref = getFirestoreRef(path);
+    return ref.id
+  }
+  const create = async (data) => {
+    return addDoc(getFirestoreRef(path), data)
+    // return getFirestoreRef(path)
+    // .add(data)
+    .then(res => console.log('Document created with id: ', res.id))
+    .catch(e => console.log('Error creating document', e))
+  }
+  const update = (id, data) => {
+    updateDoc(getFirestoreRef(path), id)
+  }
+  const remove = (id) => {
+    getFirestoreRef(path)
+    
+  }
+  const unsubscribe = (listenerName) => {}
+
   return{
     collection, doc, id, create, update, remove, unsubscribe
   }
 }
+
 const ChildCRUD = () => {
 
   return(
@@ -325,7 +564,7 @@ const ChildCRUD = () => {
         <Navbar />
         <Container>
         <Routes>
-          <Route path="/"  element = {<Home/>}/>
+          <Route path="/"  element = {<Home />}/>
           <Route path="/collection" element={<CollectionListener />}>    
           </Route>
           <Route path="/doc" element={<DocListener />}>
