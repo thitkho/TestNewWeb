@@ -33,6 +33,32 @@ const firebaseConfig2 = {
 const firebase = initializeApp(firebaseConfig2);
 const db = getFirestore(firebase);
 
+const SortOptions = {
+  attribute: "",
+  order: "",//OrderByDirection,
+};
+const CollectionOptions = {
+  listen: false,
+  listenerName: "",
+  sort: SortOptions,
+  queries: [],
+  limit: 10,
+  lazyLoad: false,
+};
+
+const DocumentOptions = {
+  listen: false,
+  listenerName: "",
+  subcollections: [{ path: "", storeAs: "" }],
+};
+
+
+
+const QueryOptions = {
+  attribute: "",
+  operator: "",//WhereFilterOp,
+  value: []
+};
 const CollectionListener = () => {
   const initData = {
     title: "",
