@@ -1,6 +1,9 @@
 //https://medium.com/exelerate/the-simplest-way-to-combine-react-redux-and-firestore-typescript-353bea49cdbd
 //https://zenn.dev/aono/articles/84964fae727445
 //https://github.com/Rajatgms/react-shop/tree/master/src/slice
+//https://medium.com/exelerate/the-simplest-way-to-combine-react-redux-and-firestore-typescript-353bea49cdbd
+//https://zenn.dev/aono/articles/84964fae727445
+//https://github.com/Rajatgms/react-shop/tree/master/src/slice
 import {
   BrowserRouter,
   Route,
@@ -17,7 +20,7 @@ import  thunk  from 'redux-thunk';
 import  {initializeApp}  from 'firebase/app';
 import  logger  from 'redux-logger';
 import { useEffect, useState } from 'react';
-import { addDoc, collection, doc, getFirestore, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { query, addDoc, collection, doc, getDoc, getFirestore, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Button, Card } from "@mui/material";
@@ -60,6 +63,27 @@ const QueryOptions = {
   operator: "",//WhereFilterOp,
   value: []
 };
+const getQuery = (coll, options) => {
+
+  const baseQuery = getFirestoreRef(coll);
+  let query = baseQuery;
+    if (options && options.queries) {
+        const { queries } = options;
+        queries.forEach(({ attribute, operator, value }) => {
+        query = query.where(attribute, operator, value);
+        });
+    }
+
+    if (options && options.sort) {
+        const { attribute, order } = options.sort;
+        query = query.orderBy(attribute, order);
+    }
+
+    if (options && options.limit) {
+        query = query.limit(options.limit);
+    }
+    return query;
+}
 const CollectionListener = () => {
   const initData = {
     title: "",
@@ -150,6 +174,7 @@ const CollectionListener = () => {
       </>
   )
 }
+
 const DocListener = () => {
   return(
     <div>DocListerner</div>
@@ -452,6 +477,7 @@ const reducerRoot = combineReducers({
 const store = configureStore({
   reducer: reducerRoot,
   preloadedState: StateRoot,
+
 });
 
 const TestNotifi = () => {
@@ -508,39 +534,39 @@ const collectionApi = (
   lastDocRef,
   options
 ) => {
-  //dispatch(actions.loading);
+  dispatch(actions.loading());
   if (options && options?.listen) {
-      const listener = query.onSnapshot(
-          querySnapshot => {
+      const listener = getDocs(query)
+        .then( querySnapshot => {
               const data = [];
               if (querySnapshot.empty) {
-                  dispatch(actions?.success([]));
+                  dispatch(actions.success([]));
                   return;
               }
               querySnapshot.forEach(doc =>
                   data.push({ id: doc.id, ...doc.data() })
               );
               console.log('test', data);
-              dispatch(actions?.success(data));
+              dispatch(actions.success(data));
               if (options.lazyLoad) {
                   lastDocRef.current = querySnapshot.docs[querySnapshot.docs.length - 1];
               }
-          },
+          })
+        .catch(
           error => {
               dispatch(actions?.error(error.message));
               console.log('collection streaming error', error.message);
           }
-      );
+        );
       collectionListenersRef.current.push({name: options.listenerName, unsubscribe: listener});
   } else {
-      query
-          .get()
+      getDocs(query)
           .then(querySnapshot => {
               const data = [];
               querySnapshot.forEach(doc =>
                   data.push(({ id: doc.id, ...doc.data() } ) )
               );
-              dispatch(actions?.success((data )));
+              dispatch(actions.success((data )));
               if (options && options.lazyLoad) {
                   lastDocRef.current = querySnapshot.docs[querySnapshot.docs.length - 1];
               }
@@ -568,8 +594,35 @@ const docApi = (
     });
     docListenerRef.current.push({name: options.listenerName, unsubscribe: listener});
   }else{
-    console.log(docRef.path);
-     
+    console.log("docRef.path", docRef.path);
+    getDoc(docRef)
+      .then(doc => {
+        if(!doc.exists){
+          dispatch(actions.error('document does not exists'))
+          return
+        }
+        let result = {id: doc.id, ...doc.data()}
+        dispatch(actions.success(result));
+        for(const subcoll of options.subCollection){
+          console.log(subcoll)
+          getDocs(collection(doc.ref, subcoll.path))
+            .then(snap => {
+              if(!snap.empty || snap.docs.length){
+                result[subcoll.storeAs] = snap.docs.map(doc=>{
+                  return{id: doc.id, ...doc.data()};
+                })
+                dispatch(actions.success(result));
+              }
+            })
+            .catch(err=>{
+              console.log('get document error 1', err)
+            })
+        }
+      })
+      .catch(err => {
+        console.log('get document error 2', err);
+        dispatch(actions.error(err.message));
+      })
   }
 
 }
