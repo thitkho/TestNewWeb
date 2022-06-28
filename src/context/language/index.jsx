@@ -29,7 +29,7 @@ import {
 } from '@reduxjs/toolkit'
 // import rootReducer from './rootState'
 import logger from 'redux-logger'
-import { Provider } from 'react-redux'
+import { Provider, useDispatch, useSelector } from 'react-redux'
 import thunk from 'redux-thunk'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
@@ -46,7 +46,6 @@ import {
 } from '@material-ui/core'
 import { Search, StarBorder } from '@material-ui/icons'
 import MaterialTable from 'material-table'
-import { async } from '@firebase/util';
 
 const initPerson = {
   name: "tan dep trai",
@@ -73,7 +72,7 @@ const PersonReducer = PersonSlice.reducer;
 
 const MemoListItem = {
   name: "",
-  tags: "",
+  tags: [],
   memo: "",
   point: 0,
   uid: "",
@@ -91,17 +90,14 @@ const genres = {
   systems: 'システム',          //hethong
   supplements: 'サプリメント',  //bosung
 } 
-const MemoListState = {
-  current: genres.scenarios,
-  list: {},
-  searchTags: "",
-  isSortCreated: false,
-}
 const memoListStateInit = {
-  current: genres.scenarios,
+  current: 'scenarios',
   list: {
-    scenarios: [],
-    tools: [],
+    scenarios: [
+      MemoListItem,
+      MemoListItem
+    ],
+    tools: [1, 2, 3],
     systems: [],
     readings: [],
     communities: [],
@@ -112,7 +108,7 @@ const memoListStateInit = {
   isSortCreated: false,
 }
 const memoListSlice = createSlice({
-  name: 'memo list',
+  name: 'memo',
   initialState: memoListStateInit,
   reducers: {
     setList: (state, action) => {
@@ -125,11 +121,22 @@ const {setList} = memoListSlice.actions;
 const MemoListRead = async (dispatch) => {
 
 }
-const rootReducer = combineReducers({
+const RootReducer = combineReducers({
   person: PersonReducer,
-  memolist: memoListSlice.reducer
+  memo: memoListSlice.reducer
   
 });
+const RootPreloadedState = {
+  // scenario: scenarioInit,
+  // entrySheet: entryInit,
+  // auth: authInit,
+  // lost: lostInit,
+  memo: memoListStateInit,
+  // trpgManual: trpgManualInit,
+  // game: gameInit,
+  // tyranoudon: tyranoudonInit,
+  // hakoniwa: hakoniwaInit,
+}
 const setupStore = (preloadedState) => {
   const middlewares = [logger, thunk]
 
@@ -138,15 +145,16 @@ const setupStore = (preloadedState) => {
   }
 
   const store = configureStore({
-    reducer: rootReducer,    
+    reducer: RootReducer,    
     middleware: middlewares,
     devTools: true,
     preloadedState,
-  })
+  });
 
   return store
 }
-const store = setupStore();
+
+const store = setupStore(RootPreloadedState);
 const Home = () => {
   return(
     <div>Home</div>
@@ -208,9 +216,20 @@ const Component = ({
   </head>
 )
 
+const separator = '-'
 //TODO:useViewmodel
 const useViewModel = () => {
-
+  const dispatch = useDispatch();
+  return useSelector((state)=>{
+    const stateMemo = state.memo;
+    console.log(stateMemo.current);
+    
+    console.log(stateMemo.list[stateMemo.current])
+    return{
+      currentName: stateMemo.current,      
+      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
+    }
+  })
 }
 const TableIcons = () => {
 
@@ -240,34 +259,22 @@ const MemoList = () => {
       {/* materailTable */}
       <MaterialTable
         title={vm.currentName}
-        icons={TableIcons}
-        options={vm.options}
-        columns={columns}
-        data={vm.data}
-        editable={vm.editHandler}
-        localization={vm.localization}
+        // icons={TableIcons}
+        // options={vm.options}
+        // columns={columns}
+        // data={vm.data}
+        // editable={vm.editHandler}
+        // localization={vm.localization}
       />
       <Link href='/'>Back</Link>
     </Container>
   )
 }
-const MyApp = (props) => {
-  const { Component, pageProps } = this.props
-  //componentdidmount
-  useEffect(()=>{
-    // Remove the server-side injected CSS.
-    const jssStyles = document.querySelector('#jss-server-side')
-    if (jssStyles) {
-      jssStyles.parentElement.removeChild(jssStyles)
-    }
-  },[]);
+const MyApp = () => {
+
   return(
     <Provider store={store}>
       <React.Fragment>
-          <head>
-            <title>Create Now</title>
-            <link rel="icon" href="/favicon.ico" />
-          </head>
           <ThemeProvider theme={theme}>
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
             <CssBaseline />
@@ -281,3 +288,4 @@ const MyApp = (props) => {
   )
 }
 export default MyApp;
+
