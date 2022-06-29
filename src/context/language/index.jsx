@@ -102,6 +102,7 @@ const MemoListItem = {
   crateAt: "",
 }
 const genres = {
+  plan: 'plan',
   scenarios: 'シナリオ',        //kichban
   tools: 'ツール',              //congcu
   assets: '素材',               //tainguyen
@@ -111,13 +112,10 @@ const genres = {
   supplements: 'サプリメント',  //bosung
 } 
 const memoListStateInit = {
-  current: 'scenarios',
+  current: defaultGenre,
   list: {
-    scenarios: [
-      MemoListItem,
-      MemoListItem
-    ],
-    tools: [1, 2, 3],
+    scenarios: [],
+    tools: [1],
     systems: [],
     readings: [],
     communities: [],
@@ -137,9 +135,17 @@ const memoListSlice = createSlice({
   }
 })
 const {setList} = memoListSlice.actions;
+const readMemoListCollections = () => {
 
-const MemoListRead = async (dispatch) => {
-
+}
+const readMemoList = (current, limit = 50, searchTags=[], isSortCreated) => async (dispatch) => {
+  const list = await store.readMemoListCollection(
+    current,
+    limit,
+    searchTags.filter(Boolean),
+    isSortCreated
+  );
+  dispatch(setList(current, list));
 }
 const RootReducer = combineReducers({
   person: PersonSlice.reducer,
@@ -186,7 +192,9 @@ const usePerson = () => {
   })
   
 }
+
 const store = setupStore(RootPreloadedState);
+const storeState = store.getState();
 const TestRedux = () => {
   //const person = useSelector((state)=>state.person)
   const {person} = usePerson();
@@ -265,18 +273,26 @@ const Component = ({
 )
 
 const separator = '-'
+const defaultGenre = 'scenarios';
 //TODO:useViewmodel
 const useViewModel = () => {
 
   const dispatch = useDispatch();
+
+  //初期読み込み
+  useEffect(()=>{
+    // dispatch(createAuthClientSide())
+    dispatch(readMemoList(defaultGenre));
+  })
+
   return useSelector((state)=>{
     const stateMemo = state.memo;
     //console.log(stateMemo.current);
     
     //console.log(stateMemo.list[stateMemo.current])
     return{
-      currentName: stateMemo.current,      
-      //data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
+      currentName: stateMemo.current, 
+      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
     }
   })
 }
@@ -329,11 +345,11 @@ const MemoList = () => {
       <MaterialTable
         title={vm.currentName}
         icons={TableIcons}
-        // options={vm.options}
+        options={vm.options}
         columns={columns}
-        // data={vm.data}
-        // editable={vm.editHandler}
-        // localization={vm.localization}
+        data={vm.data}
+        editable={vm.editHandler}
+        localization={vm.localization}
       />
       <Link href='/'>Back</Link>
     </Container>
@@ -358,4 +374,5 @@ const MyApp = () => {
   )
 }
 export default MyApp;
+
 
