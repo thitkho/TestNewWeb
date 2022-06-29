@@ -20,7 +20,7 @@
 //     }
 //   }
 // }
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, forwardRef } from 'react';
 import {
   combineReducers,
   configureStore,
@@ -43,11 +43,24 @@ import {
   Paper,
   Tabs,
   Tab,
-} from '@material-ui/core'
-import { Search, StarBorder } from '@material-ui/icons'
+} from '@mui/material'
+import { Search, StarBorder } from '@mui/icons-material'
 import MaterialTable from 'material-table'
-
-const initPerson = {
+import AddBox from '@mui/icons-material/AddBox'
+import ArrowDownward from '@mui/icons-material/ArrowDownward'
+import Check from '@mui/icons-material/Check'
+import ChevronLeft from '@mui/icons-material/ChevronLeft'
+import ChevronRight from '@mui/icons-material/ChevronRight'
+import Clear from '@mui/icons-material/Clear'
+import DeleteOutline from '@mui/icons-material/DeleteOutline'
+import Edit from '@mui/icons-material/Edit'
+import FilterList from '@mui/icons-material/FilterList'
+import FirstPage from '@mui/icons-material/FirstPage'
+import LastPage from '@mui/icons-material/LastPage'
+import Remove from '@mui/icons-material/Remove'
+import SaveAlt from '@mui/icons-material/SaveAlt'
+import ViewColumn from '@mui/icons-material/ViewColumn'
+const personInit = {
   name: "tan dep trai",
   age: 30,
 }
@@ -56,9 +69,16 @@ const DecrementAge = (state) => {
 }
 const PersonSlice = createSlice({
   name: "person",
-  initialState: initPerson,
-  reducers:{//reducer + action
-    incrementAge(state){state.age++},
+  initialState: personInit,
+  reducers:{//(reducer + action)
+    incrementAge(state, action){
+      if(state.age < 5){
+        state.age++
+      }else{
+        state.age += action.payload
+      }
+      
+    },
     de: DecrementAge,
     changeName: (state, action)=>{
       state.name = action.payload
@@ -66,9 +86,9 @@ const PersonSlice = createSlice({
   }
 })
 
-const {incrementAge, changeName, de} = PersonSlice.actions;
+//const {incrementAge, changeName, de} = PersonSlice.actions;
 
-const PersonReducer = PersonSlice.reducer;
+//const PersonReducer = PersonSlice.reducer;
 
 const MemoListItem = {
   name: "",
@@ -122,16 +142,17 @@ const MemoListRead = async (dispatch) => {
 
 }
 const RootReducer = combineReducers({
-  person: PersonReducer,
+  person: PersonSlice.reducer,
   memo: memoListSlice.reducer
   
 });
 const RootPreloadedState = {
+  person: PersonSlice.getInitialState(),
   // scenario: scenarioInit,
   // entrySheet: entryInit,
   // auth: authInit,
   // lost: lostInit,
-  memo: memoListStateInit,
+  memo: memoListSlice.getInitialState(),
   // trpgManual: trpgManualInit,
   // game: gameInit,
   // tyranoudon: tyranoudonInit,
@@ -153,11 +174,38 @@ const setupStore = (preloadedState) => {
 
   return store
 }
+const usePerson = () => {
+  const dispatch = useDispatch();
 
+  return useSelector((state)=>{
+    const person = state.person
+    //dispatch(PersonSlice.actions.changeName("tan dt"));
+    return {
+      person
+    }
+  })
+  
+}
 const store = setupStore(RootPreloadedState);
+const TestRedux = () => {
+  //const person = useSelector((state)=>state.person)
+  const {person} = usePerson();
+  //const dispatch = useDispatch();
+
+  return(
+    <div style={{display: 'flex', flexDirection: 'column'}}>
+      <label>name: {person.name}</label>
+      <label>age: {person.age}</label>
+      <button>increment</button>
+    </div>
+  )
+}
 const Home = () => {
   return(
-    <div>Home</div>
+    <div>
+      <Typography>HOME</Typography>
+      <TestRedux />
+    </div>
   )
 }
 const theme = createTheme({
@@ -219,20 +267,41 @@ const Component = ({
 const separator = '-'
 //TODO:useViewmodel
 const useViewModel = () => {
+
   const dispatch = useDispatch();
   return useSelector((state)=>{
     const stateMemo = state.memo;
-    console.log(stateMemo.current);
+    //console.log(stateMemo.current);
     
-    console.log(stateMemo.list[stateMemo.current])
+    //console.log(stateMemo.list[stateMemo.current])
     return{
       currentName: stateMemo.current,      
-      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
+      //data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
     }
   })
 }
-const TableIcons = () => {
-
+const TableIcons = {
+  Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
+  Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
+  Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+  Delete: forwardRef((props, ref) => <DeleteOutline {...props} ref={ref} />),
+  DetailPanel: forwardRef((props, ref) => (
+    <ChevronRight {...props} ref={ref} />
+  )),
+  Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
+  Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
+  Filter: forwardRef((props, ref) => <FilterList {...props} ref={ref} />),
+  FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
+  LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
+  NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
+  PreviousPage: forwardRef((props, ref) => (
+    <ChevronLeft {...props} ref={ref} />
+  )),
+  ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+  Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
+  SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
+  ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
+  ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 }
 const MemoList = () => {
   const vm = useViewModel();
@@ -259,9 +328,9 @@ const MemoList = () => {
       {/* materailTable */}
       <MaterialTable
         title={vm.currentName}
-        // icons={TableIcons}
+        icons={TableIcons}
         // options={vm.options}
-        // columns={columns}
+        columns={columns}
         // data={vm.data}
         // editable={vm.editHandler}
         // localization={vm.localization}
@@ -282,6 +351,7 @@ const MyApp = () => {
               <Component {...pageProps} />
             </I18n> */}
             <MemoList />
+            <Home />
           </ThemeProvider>
         </React.Fragment>
     </Provider>
