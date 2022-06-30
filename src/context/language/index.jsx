@@ -60,6 +60,107 @@ import LastPage from '@mui/icons-material/LastPage'
 import Remove from '@mui/icons-material/Remove'
 import SaveAlt from '@mui/icons-material/SaveAlt'
 import ViewColumn from '@mui/icons-material/ViewColumn'
+import { collection, doc } from 'firebase/firestore';
+// import usePagination from 'firestore-pagination-hook'
+import { serverTimestamp } from "firebase/firestore";
+import  {initializeApp}  from 'firebase/app';
+import {Timestamp, getDoc, getFirestore, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { getStorage } from 'firebase/storage';
+import { useRef } from 'react';
+import { getDocs } from 'firebase/firestore';
+
+// const docRef = doc(db, 'objects', 'some-id');
+
+// // Update the timestamp field with the value from the server
+// const updateTimestamp = await updateDoc(docRef, {
+//     timestamp: serverTimestamp()
+// });
+const toSerializeObject = (obj) => JSON.parse(JSON.stringify(obj))
+const toTimestamp = ({
+  seconds,
+  nanoseconds,
+}) => new Timestamp(Number(seconds), Number(nanoseconds))
+const firebaseConfig2 = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGE_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  mesurentId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+}
+const firebase = initializeApp(firebaseConfig2);
+const db = getFirestore(firebase);
+const storage = getStorage(firebase);
+
+const memoList = (db) => doc(collection(db, 'others'), 'memolist');
+  //firestore.collection('others').doc('memolist')
+
+const readMemoListCollection = async (
+  cn = "",
+  limit = 10,
+  searchTags = [],
+  isOrderCreated = false,
+) => {
+  let query = isOrderCreated
+    ? memoList(db).collection(cn).orderBy('createdAt', 'desc')
+    : memoList(db).collection(cn).orderBy('point', 'desc')
+  if (searchTags.length !== 0) {
+    // or条件 https://blog.nabettu.com/entry/array-contains-any
+    // query = query.where('tags', 'array-contains-any', searchTags)
+    const target = searchTags.pop()
+    query = query.where('tags', 'array-contains', target)
+  }
+  query = query.limit(limit)
+  const querySnapshot = await query.get()
+  const ret = []
+  querySnapshot.forEach((doc) => {
+    const data = doc.data()
+
+    // queryでは1つしか絞り込めないので、2つ以上の絞り込みは取得結果から絞り込む
+    let isNotContain = false
+    searchTags.forEach((tag) => {
+      if (!data.tags.includes(tag)) isNotContain = true
+    })
+    if (isNotContain) return
+    ret.push({
+      ...data,
+      createdAt: toSerializeObject(data.createdAt),
+      id: doc.id,
+    })
+  })
+
+  return ret
+}
+
+export const createMemo = async (
+  cn = "",
+  memo = {},
+  uid = "",
+) => {
+  const memos = memoList(db).collection(cn)
+  const { id } = await memos.doc()
+  await Promise.all([
+    memos.doc(id).set({
+      ...memo,
+      uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }),
+  ])
+  .then(res => console.log("success"))
+  .catch(err => console.log(err))
+  const newRef = await memos.doc(id).get()
+  const newItem = newRef.data()
+  return { ...newItem, id, createdAt: toSerializeObject(newItem.createdAt) }
+}
+
+const updateMemo = async (cn, memo) =>
+  await memoList(db)
+    .collection(cn)
+    .doc(memo.id)
+    .set({ ...memo, createdAt: toTimestamp(memo.createdAt) })
+const deleteMemo = async (cn, memo) =>
+  await memoList(db).collection(cn).doc(memo.id).delete()
 const personInit = {
   name: "tan dep trai",
   age: 30,
@@ -111,11 +212,14 @@ const genres = {
   systems: 'システム',          //hethong
   supplements: 'サプリメント',  //bosung
 } 
+const separator = ' '
+const defaultGenre = 'plan';
 const memoListStateInit = {
   current: defaultGenre,
   list: {
+    plan: [],
     scenarios: [],
-    tools: [1],
+    tools: [],
     systems: [],
     readings: [],
     communities: [],
@@ -131,21 +235,54 @@ const memoListSlice = createSlice({
   reducers: {
     setList: (state, action) => {
       state.list[action.payload.current] = action.payload.list
-    }
+    },
+    addItem: (
+      state,
+      action
+    ) => {
+      state.list[action.payload.current].push(action.payload.item)
+    },
+    setItem: (
+      state,
+      {
+        payload: { current, item },
+      }
+    ) => {
+      state.list[current][
+        state.list[current].findIndex((i) => i.id === item.id)
+      ] = item
+    },
+    deleteItem: (
+      state,
+      {
+        payload: { current, item },
+      }
+    ) => {
+      state.list[current] = state.list[current].filter((i) => i.id !== item.id)
+    },
+    setSearchTags: (state, action) => {
+      state.searchTags = action.payload
+    },
+    setIsSortCreated: (state, action) => {
+      state.isSortCreated = action.payload
+    },
+    setCurrent: (state, action) => {
+      state.current = action.payload
+    },
   }
 })
-const {setList} = memoListSlice.actions;
-const readMemoListCollections = () => {
 
+const readMemoListCollections = async () => {
+  //doc(collection())
 }
 const readMemoList = (current, limit = 50, searchTags=[], isSortCreated) => async (dispatch) => {
-  const list = await store.readMemoListCollection(
+  const list = await readMemoListCollections(
     current,
     limit,
     searchTags.filter(Boolean),
     isSortCreated
   );
-  dispatch(setList(current, list));
+  dispatch(memoListSlice.actions.setList(current, list));
 }
 const RootReducer = combineReducers({
   person: PersonSlice.reducer,
@@ -271,10 +408,53 @@ const Component = ({
     <meta property="og:site_name" content={SITE_NAME} />
   </head>
 )
+const createMemoListItem = (data) => ({
+  id: data.id || '',
+  uid: data.uid || '',
+  name: data.name || 'ななし',
+  tags: data.tags ,
+  memo: data.memo || '',
+  point: data.point || 0,
+  nickname: data.nickname || '',
+  url: data.url || '',
+  createdAt: data.createdAt || '',
+})
 
-const separator = '-'
-const defaultGenre = 'scenarios';
+const addMemoItem = (
+  current,
+  data,
+  uid
+) => async (dispatch) => {
+  const item = createMemoListItem(data)
+  const newItem = await store.createMemo(current, item, uid)
+  dispatch(
+    memoListSlice.actions.addItem({
+      current,
+      item: { ...item, ...newItem },
+    }),
+  )
+}
+
+const updateMemoItem = (
+  current,
+  data,
+) => async (dispatch) => {
+  const item = createMemoListItem(data)
+  await store.updateMemo(current, item)
+  dispatch(memoListSlice.actions.setItem({ current, item }))
+}
+
+const deleteMemoItem = (
+  current,
+  data,
+) => async (dispatch) => {
+  const item = createMemoListItem(data)
+  await store.deleteMemo(current, item)
+  dispatch(memoListSlice.actions.deleteItem({ current, item }))
+}
+
 //TODO:useViewmodel
+const searchLimit = 50;
 const useViewModel = () => {
 
   const dispatch = useDispatch();
@@ -288,11 +468,100 @@ const useViewModel = () => {
   return useSelector((state)=>{
     const stateMemo = state.memo;
     //console.log(stateMemo.current);
-    
+    const editHandler = {
+        isDeletable: (rowData) => console.log(rowData),
+        onRowAdd: async (newData) => {
+          dispatch(addMemoItem(memoList.current, newData))
+        },
+        onRowUpdate: async (newData, oldData) => {
+          dispatch(updateMemoItem(memoList.current, newData))
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve()
+            }, 300)
+          })
+        },
+        onRowDelete: (oldData) => {
+          dispatch(deleteMemoItem(memoList.current, oldData))
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve()
+            }, 300)
+          })
+        },
+      }
+    const options = {
+      sorting: false,
+      paging: false,
+      rowStyle: {
+        whiteSpace: 'nowrap',
+      },
+      headerStyle: {
+        whiteSpace: 'nowrap',
+      },
+      actionsColumnIndex: 6,
+      addRowPosition: 'first',
+    }
     //console.log(stateMemo.list[stateMemo.current])
     return{
       currentName: stateMemo.current, 
-      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),}))
+      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),})),
+      options: options,
+      editHandler,
+      searchTags: memoList.searchTags,
+      searchHandler: () => {
+        dispatch(
+          readMemoList(
+            memoList.current,
+            searchLimit,
+            memoListSlice.actions.separateTags(memoList.searchTags),
+            memoList.isSortCreated,
+          ),
+        )
+      },
+      //searchTagsChangeHandler: (e) => dispatch(setSearchTags(e.target.value)),
+      toggleIsSortCreated: (event) => {
+        dispatch(memoListSlice.actions.setIsSortCreated(event.target.checked))
+      },
+      isSortCreated: memoList.isSortCreated,
+      tagClickHandler: async (tag) => {
+        dispatch(memoListSlice.actions.setSearchTags(tag))
+      },
+      localization: {
+        header: {
+          actions: '',
+        },
+        body: {
+          editRow: { deleteText: '削除しますか?' },
+          addTooltip: '新しい行を追加',
+          deleteTooltip: '削除',
+          editTooltip: '削除',
+        },
+        toolbar: { searchPlaceholder: '検索結果の絞り込み' },
+      },
+      //auth: authUser,
+      pointClickHandler: async (memo) => {
+        dispatch(
+          updateMemoItem(memoList.current, {
+            ...memo,
+            point: memo.point + 1,
+          }),
+        )
+      },
+      currentName: genres[memoList.current],
+      genres: genres,
+      genreChangeHandler: (genre) => {
+        dispatch(memoListSlice.actions.setCurrent(genre))
+        if (memoList.list[genre].length !== 0) return
+        dispatch(
+          readMemoList(
+            genre,
+            searchLimit,
+            memoListSlice.actions.separateTags(memoList.searchTags),
+            memoList.isSortCreated,
+          ),
+        )
+      },
     }
   })
 }
@@ -372,6 +641,16 @@ const MyApp = () => {
         </React.Fragment>
     </Provider>
   )
+}
+const CardJP = {
+ card1: {
+  id:1,
+  title: "hiragana",
+  name:"hiragana",
+  constent: {
+    
+  }
+ } 
 }
 export default MyApp;
 
