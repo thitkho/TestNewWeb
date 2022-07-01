@@ -1,39 +1,22 @@
-// https://dev.to/vetswhocode/build-a-crud-firestore-app-in-react-gatsby-with-hooks-4ig9
-// https://qiita.com/hibohiboo/items/3d0665b9a85342f42264
-//https://github.com/hibohiboo/create-now
-// ireabase/config/firestore.rules
-// rules_version = '2';
-// service cloud.firestore {
-//   function isSignedIn() {
-//     return request.auth != null;
-//   }
-//   function isOwner(rsc) {
-//     // データ作成した本人であることを確認
-//     return isSignedIn() && request.auth.uid == rsc.data.uid;
-//   }
-
-//   // マッチングルール
-//   match /databases/{database}/documents {
-//     match /others/memolist/{documents=**} {
-//       allow read, create, update
-//       allow delete: if isOwner(resource)
-//     }
-//   }
-// }
+import {Timestamp, getFirestore, getDoc, doc, collection, onSnapshot, addDoc, query, orderBy, deleteDoc, setDoc} from "firebase/firestore";
 import React, { useEffect, useState, forwardRef } from 'react';
 import {
   combineReducers,
   configureStore,
   EnhancedStore,
-  createSlice
+  createSlice,
+  createAsyncThunk,
+  createEntityAdapter,
+  createSelector
 } from '@reduxjs/toolkit'
 // import rootReducer from './rootState'
+import { createServer } from "miragejs"
 import logger from 'redux-logger'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import thunk from 'redux-thunk'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
-import { Container, CssBaseline, Link, Typography } from '@mui/material';
+import { Container, CssBaseline, Link, TextField, Typography } from '@mui/material';
 import {
   Box,
   Button,
@@ -44,7 +27,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material'
-import { Search, StarBorder } from '@mui/icons-material'
+import { Input, Search, StarBorder } from '@mui/icons-material'
 import MaterialTable from 'material-table'
 import AddBox from '@mui/icons-material/AddBox'
 import ArrowDownward from '@mui/icons-material/ArrowDownward'
@@ -60,26 +43,38 @@ import LastPage from '@mui/icons-material/LastPage'
 import Remove from '@mui/icons-material/Remove'
 import SaveAlt from '@mui/icons-material/SaveAlt'
 import ViewColumn from '@mui/icons-material/ViewColumn'
-import { collection, doc } from 'firebase/firestore';
 // import usePagination from 'firestore-pagination-hook'
 import { serverTimestamp } from "firebase/firestore";
 import  {initializeApp}  from 'firebase/app';
-import {Timestamp, getDoc, getFirestore, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
 import { useRef } from 'react';
-import { getDocs } from 'firebase/firestore';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { IconButton } from '@mui/material';
 
-// const docRef = doc(db, 'objects', 'some-id');
+const availableColors = ['green', 'blue', 'orange', 'purple', 'red']
 
-// // Update the timestamp field with the value from the server
-// const updateTimestamp = await updateDoc(docRef, {
-//     timestamp: serverTimestamp()
-// });
-const toSerializeObject = (obj) => JSON.parse(JSON.stringify(obj))
-const toTimestamp = ({
-  seconds,
-  nanoseconds,
-}) => new Timestamp(Number(seconds), Number(nanoseconds))
+const capitalize = (s) => s[0].toUpperCase() + s.slice(1)
+
+//data mock
+const data = {
+  card1:{
+    id:1,
+    title: "base",
+    name: "hiragana",
+    content:{
+      a:{
+        
+      }
+    }
+  }
+}
+const detail = {
+  mean:"",
+  read:"",
+  write:"",
+}
+//firebase
 const firebaseConfig2 = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -91,567 +86,616 @@ const firebaseConfig2 = {
 }
 const firebase = initializeApp(firebaseConfig2);
 const db = getFirestore(firebase);
-const storage = getStorage(firebase);
+const useFirestore =(path) => {
 
-const memoList = (db) => doc(collection(db, 'others'), 'memolist');
-  //firestore.collection('others').doc('memolist')
+  const id = 1;
+  const create = () => {}
+  const add = () => {}
+  const deleteId = () => {}
+  const update = () => {}
+  const docDb = () => {}
+  const colectionDb = () => {}
 
-const readMemoListCollection = async (
-  cn = "",
-  limit = 10,
-  searchTags = [],
-  isOrderCreated = false,
-) => {
-  let query = isOrderCreated
-    ? memoList(db).collection(cn).orderBy('createdAt', 'desc')
-    : memoList(db).collection(cn).orderBy('point', 'desc')
-  if (searchTags.length !== 0) {
-    // or条件 https://blog.nabettu.com/entry/array-contains-any
-    // query = query.where('tags', 'array-contains-any', searchTags)
-    const target = searchTags.pop()
-    query = query.where('tags', 'array-contains', target)
+  return{
+    id, create, add, deleteId, update, docDb, colectionDb
   }
-  query = query.limit(limit)
-  const querySnapshot = await query.get()
-  const ret = []
-  querySnapshot.forEach((doc) => {
-    const data = doc.data()
-
-    // queryでは1つしか絞り込めないので、2つ以上の絞り込みは取得結果から絞り込む
-    let isNotContain = false
-    searchTags.forEach((tag) => {
-      if (!data.tags.includes(tag)) isNotContain = true
-    })
-    if (isNotContain) return
-    ret.push({
-      ...data,
-      createdAt: toSerializeObject(data.createdAt),
-      id: doc.id,
-    })
+}
+//redux
+const initTodo = {
+  status: 'idle',
+  entities:{}
+}
+//
+const todoAdapter = createEntityAdapter();
+const initState = todoAdapter.getInitialState({
+  status: 'idle',
+})
+//thunks
+const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
+  // const reponse = await 
+  // const id = 1;
+  // const title = "tan dep trai"
+  // return [
+  //   {id: id, title: title, completed: true, content: "lenrn react"},
+  //   {id: id+1, title: title+1, completed: false, content: "learn redux"}
+  // ]
+  // const response = await client.get('/fakeApi/todos')
+  //   .then(res => console.log(res))
+  //   .then(err => console.log(err))
+  // return response.todos
+  const todos = []
+  fetch("/fetchApi/todos")
+  .then((res)=>res.json())
+  .then((json)=>{
+    json.map((item)=>todos.push(item));
   })
+  console.log("todos:", todos);
+  
+  return todos;
 
-  return ret
-}
-
-export const createMemo = async (
-  cn = "",
-  memo = {},
-  uid = "",
-) => {
-  const memos = memoList(db).collection(cn)
-  const { id } = await memos.doc()
-  await Promise.all([
-    memos.doc(id).set({
-      ...memo,
-      uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    }),
-  ])
-  .then(res => console.log("success"))
-  .catch(err => console.log(err))
-  const newRef = await memos.doc(id).get()
-  const newItem = newRef.data()
-  return { ...newItem, id, createdAt: toSerializeObject(newItem.createdAt) }
-}
-
-const updateMemo = async (cn, memo) =>
-  await memoList(db)
-    .collection(cn)
-    .doc(memo.id)
-    .set({ ...memo, createdAt: toTimestamp(memo.createdAt) })
-const deleteMemo = async (cn, memo) =>
-  await memoList(db).collection(cn).doc(memo.id).delete()
-const personInit = {
-  name: "tan dep trai",
-  age: 30,
-}
-const DecrementAge = (state) => {
-  state.age--
-}
-const PersonSlice = createSlice({
-  name: "person",
-  initialState: personInit,
-  reducers:{//(reducer + action)
-    incrementAge(state, action){
-      if(state.age < 5){
-        state.age++
-      }else{
-        state.age += action.payload
-      }
-      
-    },
-    de: DecrementAge,
-    changeName: (state, action)=>{
-      state.name = action.payload
-    }
-  }
-})
-
-//const {incrementAge, changeName, de} = PersonSlice.actions;
-
-//const PersonReducer = PersonSlice.reducer;
-
-const MemoListItem = {
-  name: "",
-  tags: [],
-  memo: "",
-  point: 0,
-  uid: "",
-  id: "",
-  nickname: "",
-  url: "",
-  crateAt: "",
-}
-const genres = {
-  plan: 'plan',
-  scenarios: 'シナリオ',        //kichban
-  tools: 'ツール',              //congcu
-  assets: '素材',               //tainguyen
-  communities: 'コミュニティ',  //congdong
-  readings: '読み物',           //tailieudoc
-  systems: 'システム',          //hethong
-  supplements: 'サプリメント',  //bosung
-} 
-const separator = ' '
-const defaultGenre = 'plan';
-const memoListStateInit = {
-  current: defaultGenre,
-  list: {
-    plan: [],
-    scenarios: [],
-    tools: [],
-    systems: [],
-    readings: [],
-    communities: [],
-    supplements: [],
-    assets: [],
-  },
-  searchTags: '',
-  isSortCreated: false,
-}
-const memoListSlice = createSlice({
-  name: 'memo',
-  initialState: memoListStateInit,
-  reducers: {
-    setList: (state, action) => {
-      state.list[action.payload.current] = action.payload.list
-    },
-    addItem: (
-      state,
-      action
-    ) => {
-      state.list[action.payload.current].push(action.payload.item)
-    },
-    setItem: (
-      state,
-      {
-        payload: { current, item },
-      }
-    ) => {
-      state.list[current][
-        state.list[current].findIndex((i) => i.id === item.id)
-      ] = item
-    },
-    deleteItem: (
-      state,
-      {
-        payload: { current, item },
-      }
-    ) => {
-      state.list[current] = state.list[current].filter((i) => i.id !== item.id)
-    },
-    setSearchTags: (state, action) => {
-      state.searchTags = action.payload
-    },
-    setIsSortCreated: (state, action) => {
-      state.isSortCreated = action.payload
-    },
-    setCurrent: (state, action) => {
-      state.current = action.payload
-    },
-  }
-})
-
-const readMemoListCollections = async () => {
-  //doc(collection())
-}
-const readMemoList = (current, limit = 50, searchTags=[], isSortCreated) => async (dispatch) => {
-  const list = await readMemoListCollections(
-    current,
-    limit,
-    searchTags.filter(Boolean),
-    isSortCreated
-  );
-  dispatch(memoListSlice.actions.setList(current, list));
-}
-const RootReducer = combineReducers({
-  person: PersonSlice.reducer,
-  memo: memoListSlice.reducer
   
 });
-const RootPreloadedState = {
-  person: PersonSlice.getInitialState(),
-  // scenario: scenarioInit,
-  // entrySheet: entryInit,
-  // auth: authInit,
-  // lost: lostInit,
-  memo: memoListSlice.getInitialState(),
-  // trpgManual: trpgManualInit,
-  // game: gameInit,
-  // tyranoudon: tyranoudonInit,
-  // hakoniwa: hakoniwaInit,
-}
-const setupStore = (preloadedState) => {
-  const middlewares = [logger, thunk]
+export const saveNewTodo = createAsyncThunk('todos/saveNewTodo', async (text) => {
+  // console.log(text);
+  // const initialTodo = { text }
+  // console.log(initialTodo);
+  
+  // // const response = await client.post('/fakeApi/todos', { todo: initialTodo })
+  // return {id: 5, title: "heloo", completed: false, content: text}
+  const initialTodo = { text }
+  // const response = await client.post('/fakeApi/todos', { todo: initialTodo })
+  // return response.todo
+});
+const todoSlice = createSlice({
+  name: 'todo',
+  initialState:initState,
+  reducers:{
+    todoDeleted: todoAdapter.removeOne,
+    allTodoCompleted(state, action){
+      Object.values(state.entities).forEach(todo=>{
+        todo.completed = true
+      })
+    },
+    completedTodoCleared(state, action){
+      const completedId = Object.values(state.entities)
+        .filter(todo => todo.completed)
+        .map(todo => todo.id)
+      todoAdapter.removeMany(state, completedId);
+    },
+    todoAdded(state,action){
+      const todo = action.payload;
+      state.entities[todo.id] = todo;
+    },
+    todoToggled(state, action){
+      const todoId = action.payload;
+      const todo = state.entities[todoId];
+      todo.completed = !todo.completed;
+    },
+    todoLoading(state, actions){
+      return{...state, status: 'loading'}
+    },
 
-  if (process.env.NODE_ENV === 'development') {
-    middlewares.push(logger)
+    //
+    todoColorSelected: {
+      reducer(state, action){
+        const {color, todoId} = action.payload
+        state.entities[todoId].color = color
+      },
+      prepare(todoId, color){
+        return{payload:{todoId, color}}
+      }      
+    },
+    // todoDeleted(state, action){
+    //   delete state.entries[action.payload];
+    // }
+  },
+  extraReducers: build => {build
+    .addCase(fetchTodo.pending, (state, action)=>{
+      state.status = 'loading'
+    })
+    // .addCase(fetchTodo.fulfilled, (state, action)=>{
+    //   const newEntities = {};
+    //   action.payload.forEach(todo=>{
+    //     newEntities[todo.id] = todo
+    //   });
+    //   state.entities = newEntities
+    //   state.status = 'idle'
+    // })
+    .addCase(fetchTodo.fulfilled, (state, action)=>{
+      todoAdapter.setAll(state, action.payload);
+      state.status = 'idle'
+    })
+    .addCase(saveNewTodo.fulfilled, (state, action)=>todoAdapter.addOne)
+    // .addCase(saveNewTodo.fulfilled, (state, action)=>{
+    //   const todo = action.payload
+    //   state.entities[todo.id] = todo
+    // })
+  }
+  
+});
+const {
+  todoColorSelected, 
+  allTodoCompleted,
+  todoLoading, 
+  todoToggled, 
+  todoAdded, 
+  completedTodoCleared,
+  todoDeleted,
+} = todoSlice.actions;
+
+const {selectAll: selectTodo, selectById: selectTodoById} = todoAdapter.getSelectors(state=>state.todos)
+
+const selectTodoId = createSelector(
+  selectTodo,
+  todos => todos.map(td => td.id)
+);
+const selectFilteredTodos = createSelector(
+  // First input selector: all todos
+  selectTodo,
+  // Second input selector: all filter values
+  (state) => state.filters,
+  // Output selector: receives both values
+  (todos, filters) => {
+    const { status, colors } = filters
+    const showAllCompletions = status === StatusFilters.All
+    if (showAllCompletions && colors.length === 0) {
+      return todos
+    }
+
+    const completedStatus = status === StatusFilters.Completed
+    // Return either active or completed todos based on filter
+    return todos.filter((todo) => {
+      const statusMatches =
+        showAllCompletions || todo.completed === completedStatus
+      const colorMatches = colors.length === 0 || colors.includes(todo.color)
+      return statusMatches && colorMatches
+    })
+  }
+)
+
+const selectFilteredTodoIds = createSelector(
+  // Pass our other memoized selector as an input
+  selectFilteredTodos,
+  // And derive data in the output selector
+  (filteredTodos) => filteredTodos.map((todo) => {
+    console.log("todo",todo);
+    return todo.id
+  })
+)
+const StatusFilters = {
+  All: 'all',
+  Active: 'active',
+  Completed: 'completed',
+}
+
+const initialState = {
+  status: StatusFilters.All,
+  colors: [],
+}
+
+const filtersSlice = createSlice({
+  name: 'filters',
+  initialState,
+  reducers: {
+    statusFilterChanged(state, action) {
+      state.status = action.payload
+    },
+    colorFilterChanged: {
+      reducer(state, action) {
+        let { color, changeType } = action.payload
+        const { colors } = state
+        switch (changeType) {
+          case 'added': {
+            if (!colors.includes(color)) {
+              colors.push(color)
+            }
+            break
+          }
+          case 'removed': {
+            state.colors = colors.filter(
+              (existingColor) => existingColor !== color
+            )
+          }
+          default:
+            return
+        }
+      },
+      prepare(color, changeType) {
+        return {
+          payload: { color, changeType },
+        }
+      },
+    },
+  },
+})
+
+const { colorFilterChanged, statusFilterChanged } = filtersSlice.actions
+
+const planSlice = createSlice({
+  name: 'plan',
+  initialState: [],
+  reducers: {
+    planAdded(state,action){state.push(action.payload)},
+    planToggled(state, action){
+      const todo = state.find(todo => todo.id === action.payload)
+      todo.completed = !todo.completed
+    },
+    planLoading(state, actions){
+      return{...state, status: 'loading'}
+    }
+  }
+})
+const RootReducers = combineReducers({
+  todos: todoSlice.reducer,
+  filters: filtersSlice.reducer,
+  plan: planSlice.reducer
+})
+const store = configureStore({
+  devTools: true,
+  // preloadedState: {},
+  reducer: RootReducers,
+  middleware:[thunk],
+})
+//app
+const HeaderTodo = () => {
+  const [text, setText] = useState('')
+  const [status, setStatus] = useState('idle')
+  const dispatch = useDispatch()
+
+  const handleChange = (e) => setText(e.target.value)
+
+  const handleKeyDown = async (e) => {
+    // If the user pressed the Enter key:
+    const trimmedText = text.trim()
+    if (e.which === 13 && trimmedText) {
+      // Create and dispatch the thunk function itself
+      setStatus('loading')
+      await dispatch(saveNewTodo(trimmedText))
+      // And clear out the text input
+      setText('')
+      setStatus('idle')
+    }
   }
 
-  const store = configureStore({
-    reducer: RootReducer,    
-    middleware: middlewares,
-    devTools: true,
-    preloadedState,
-  });
+  let isLoading = status === 'loading'
+  let placeholder = isLoading ? '' : 'What needs to be done?'
+  let loader = isLoading ? <div className="loader" /> : null
 
-  return store
+  return (
+    <header className="header">
+      <input
+        placeholder={placeholder}
+        value={text}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        disabled={isLoading}
+      />
+      {loader}
+    </header>
+  )
 }
-const usePerson = () => {
-  const dispatch = useDispatch();
 
-  return useSelector((state)=>{
-    const person = state.person
-    //dispatch(PersonSlice.actions.changeName("tan dt"));
-    return {
-      person
+const RemainingTodos = ({ count }) => {
+  const suffix = count === 1 ? '' : 's'
+
+  return (
+    <div className="todo-count">
+      <h5>Remaining Todos</h5>
+      <strong>{count}</strong> item{suffix} left
+    </div>
+  )
+}
+
+const StatusFilter = ({ value: status, onChange }) => {
+  const renderedFilters = Object.keys(StatusFilters).map((key) => {
+    const value = StatusFilters[key]
+    const handleClick = () => onChange(value)
+    const className = value === status ? 'selected' : ''
+
+    return (
+      <li key={value}>
+        <button className={className} onClick={handleClick}>
+          {key}
+        </button>
+      </li>
+    )
+  })
+
+  return (
+    <div className="filters statusFilters">
+      <h5>Filter by Status</h5>
+      <ul>{renderedFilters}</ul>
+    </div>
+  )
+}
+
+const ColorFilters = ({ value: colors, onChange }) => {
+  const renderedColors = availableColors.map((color) => {
+    const checked = colors.includes(color)
+    const handleChange = () => {
+      const changeType = checked ? 'removed' : 'added'
+      onChange(color, changeType)
     }
+
+    return (
+      <label key={color}>
+        <input
+          type="checkbox"
+          name={color}
+          checked={checked}
+          onChange={handleChange}
+        />
+        <span
+          className="color-block"
+          style={{
+            backgroundColor: color,
+          }}
+        ></span>
+        {capitalize(color)}
+      </label>
+    )
+  })
+
+  return (
+    <div className="filters colorFilters">
+      <h5>Filter by Color</h5>
+      <form className="colorSelection">{renderedColors}</form>
+    </div>
+  )
+}
+const TodoListItem = ({ id }) => {
+  // Call our `selectTodoById` with the state _and_ the ID value
+  const todo = useSelector((state) => selectTodoById(state, id))
+  const { text, completed, color } = todo
+
+  const dispatch = useDispatch()
+
+  const handleCompletedChanged = () => {
+    dispatch(todoToggled(todo.id))
+  }
+
+  const handleColorChanged = (e) => {
+    const color = e.target.value
+    dispatch(todoColorSelected(todo.id, color))
+  }
+
+  const onDelete = () => {
+    dispatch(todoDeleted(todo.id))
+  }
+
+  const colorOptions = availableColors.map((c) => (
+    <option key={c} value={c}>
+      {capitalize(c)}
+    </option>
+  ))
+
+  return (
+    <li>
+      <div>
+        <div>
+          <input
+            type="checkbox"
+            checked={completed}
+            onChange={handleCompletedChanged}
+          />
+          <div>{text}</div>
+        </div>
+        <div>
+          <select
+            value={color}
+            style={{ color }}
+            onChange={handleColorChanged}
+          >
+            <option value=""></option>
+            {colorOptions}
+          </select>
+          <button onClick={onDelete}>X
+            {/* <TimesSolid /> */}
+          </button>
+        </div>
+      </div>
+    </li>
+  )
+}
+
+const TodoList = () => {
+
+  const todoIds = useSelector(selectFilteredTodoIds)
+  console.log("todoIds",todoIds)
+  const loadingStatus = useSelector((state) => state.todos.status)
+
+  if (loadingStatus === 'loading') {
+    return (
+      <div>
+        <div/>
+      </div>
+    )
+  }
+
+  const renderedListItems = todoIds.map((todoId) => {
+
+    return <TodoListItem key={todoId} id={todoId} />
+  })
+
+  return <ul>{renderedListItems}</ul>
+
+}
+
+const Footer = () => {
+  const dispatch = useDispatch()
+
+  const todosRemaining = useSelector((state) => {
+    // console.log("state",state);
+    const uncompletedTodos = selectTodo(state).filter(
+      (todo) => !todo.completed
+    )
+    return uncompletedTodos.length
+  })
+
+  const { status, colors } = useSelector((state) => state.filters)
+
+  const onMarkCompletedClicked = () => dispatch(allTodoCompleted())
+  const onClearCompletedClicked = () => dispatch(completedTodoCleared())
+
+  const onColorChange = (color, changeType) =>
+    dispatch(colorFilterChanged(color, changeType))
+
+  const onStatusChange = (status) => dispatch(statusFilterChanged(status))
+
+  return (
+    <footer>
+      <div>
+        <h5>Actions</h5>
+        <button onClick={onMarkCompletedClicked}>
+          Mark All Completed
+        </button>
+        <button onClick={onClearCompletedClicked}>
+          Clear Completed
+        </button>
+      </div>
+
+      <RemainingTodos count={todosRemaining} />
+      <StatusFilter value={status} onChange={onStatusChange} />
+      <ColorFilters value={colors} onChange={onColorChange} />
+    </footer>
+  )
+}
+
+let server = createServer();
+server.get("/api/users", { users: [{ id: 1, name: "Bob" }] });
+// server.get("/api/todos", { todos: [{ id: 1, content: "tan dep" }] });
+server.get("/fetchApi/todos", {todos: [
+  {id: 1, content: "abc", completed: false, color: 'blue'},
+  {id: 2, content: "tan dep trai", completed: false, color: 'green'},
+  {id: 3, content: "learn redux", completed: false, color: 'red'},
+  {id: 4, content: "learn angula", completed: true, color: 'blue'},
+  {id: 5, content: "learn react", completed: false, color: 'blue'},
+]})
+
+
+const RefireCrud = () => {
+  const [users, setUsers] = useState([]);
+
+  useEffect(()=>{
+    store.dispatch(fetchTodo());
+  },[]);
+  useEffect(()=>{
+    fetch("/api/users")
+      .then((res) => res.json())
+      .then((json) => {
+        setUsers(json.users)
+      })
+  },[])
+  return(
+    <Provider store={store}>
+      <div>
+        <nav>
+          <section>
+            <h1>Redux Fundamentals Example</h1>
+
+          </section>
+        </nav>
+        <main>
+          <section>
+            <h2>Todos</h2>
+            <div>
+              {/* <HeaderTodo />
+              <TodoList />
+              <Footer /> */}
+            </div>
+          </section>
+        </main>
+        <ul>
+          {users.map((user) => (
+                <li key={user.id}>{user.name}</li>
+              ))}
+        </ul>
+      </div>
+    </Provider>
+
+  )
+}
+function TestCrud() {
+  const [input, setInput] = useState("")
+
+  //GETTINGS LISTS
+  const [lists, setLists] = useState([])
+    useEffect(()=> {
+      const q = query(collection(db, "shopping-lists"),  orderBy("timestamp", "desc"));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setLists(snapshot.docs.map(doc => ({...doc.data(), id: doc.id})))
+        setInput("")
+      });
+        return () => unsubscribe()
+  }, [])   
+//ENDS HERE
+
+//ADDING LISTS
+  const handleClick = (e) => {
+    e.preventDefault()
+
+    if(input) {
+      addDoc(collection(db, "shopping-lists"), {
+        name: input,
+        timestamp: new Date()
+      }).catch(err => console.error(err))
+    }//end of If statement
+  
+  }//end of handleClick
+
+  //DELETE A DOC
+  async function deleteDocument(id) {
+      let request = await deleteDoc(doc(db, "shopping-lists", id));
+      console.log(request)
+  } 
+  //UPDATE A DOC
+
+async function updateDocument(id) {
+  const itemRef = doc(db, "shopping-lists", id);
+  let name =  prompt("What would you like to update it to?")
+  setDoc(itemRef, {
+    name: name,
+    timestamp: new Date()
   })
   
 }
+  
+  return (
+    <div className="w-full h-screen bg-gray-100 flex items-center justify-center flex-col">
+      <h2 className="text-2xl text-gray-800 font-bold mb-6">Shopping List</h2>
 
-const store = setupStore(RootPreloadedState);
-const storeState = store.getState();
-const TestRedux = () => {
-  //const person = useSelector((state)=>state.person)
-  const {person} = usePerson();
-  //const dispatch = useDispatch();
-
-  return(
-    <div style={{display: 'flex', flexDirection: 'column'}}>
-      <label>name: {person.name}</label>
-      <label>age: {person.age}</label>
-      <button>increment</button>
+      <div className="w-2/3 border shadow-md p-7">
+      
+        <form className="flex items-center justify-between mb-7">
+            <input 
+              type="text" name="item" 
+              className="w-2/3 h-10 p-3 outline-none border border-gray-500"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              />
+            <button className="bg-green-400 p-3 rounded text-white" onClick={handleClick}>Save</button>
+        </form>
+        <div className="w-full ">
+            {lists.map(list => (
+              <div className="border-b w-full h-16 flex items-center justify-between" key={list.id}>
+                <p>{list.name}</p>
+                <div>
+                  <IconButton   onClick={() => updateDocument(list.id)}>
+                    <EditIcon/>
+                  </IconButton>
+                  
+                  <IconButton onClick={() => deleteDocument(list.id)}>
+                  <DeleteIcon/>
+                  </IconButton>
+                
+                </div>
+           
+          </div>
+            ))}        
+        </div>
+      </div>
     </div>
-  )
+  );
 }
-const Home = () => {
-  return(
-    <div>
-      <Typography>HOME</Typography>
-      <TestRedux />
-    </div>
-  )
-}
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#556cd6',
-    },
-    secondary: {
-      main: '#19857b',
-    },
-    error: {
-      main: red.A400,
-    },
-    background: {
-      default: '#fff',
-    },
-  },
-})
-const viewTable = {
-  search: false,
-  sorting: false,
-  paging: false,
-  draggable: false,
-  rowStyle: {
-    whiteSpace: 'nowrap',
-  },
-  headerStyle: {
-    whiteSpace: 'nowrap',
-  },
-}
-
-const TWITTER_USER_NAME = 'hibohiboo'
-const SITE_NAME = 'hibohiboo TRPG サポートページ'
-const SITE_DOMAIN = 'https://create-now.now.sh'
-const Component = ({
-  title,
-  description,
-  url,
-  image = 'https://lostrpg-751c1.firebaseapp.com/assets/images/losttop.png',
-  keywords = 'LOSTRPG,廃墟,子供たち,キャラクターシート,TRPG,廃墟の森,ポストアポカリプス',
-}) => (
-  <head>
-    <meta name="twitter:site" content={`@${TWITTER_USER_NAME}`} />
-    <meta name="twitter:creator" content={`@${TWITTER_USER_NAME}`} />
-    <meta
-      name="twitter:card"
-      content={image ? 'summary_large_image' : 'summary'}
-    />
-    {title && <meta name="og:title" content={title} />}
-    {url && <meta name="og:url" content={`${SITE_DOMAIN}${url}`} />}
-    {description && <meta name="description" content={description} />}
-    {description && <meta name="og:description" content={description} />}
-    {image && <meta name="og:image" content={image} />}
-    {keywords && <meta name="keywords" content={keywords} />}
-    <meta property="og:site_name" content={SITE_NAME} />
-  </head>
-)
-const createMemoListItem = (data) => ({
-  id: data.id || '',
-  uid: data.uid || '',
-  name: data.name || 'ななし',
-  tags: data.tags ,
-  memo: data.memo || '',
-  point: data.point || 0,
-  nickname: data.nickname || '',
-  url: data.url || '',
-  createdAt: data.createdAt || '',
-})
-
-const addMemoItem = (
-  current,
-  data,
-  uid
-) => async (dispatch) => {
-  const item = createMemoListItem(data)
-  const newItem = await store.createMemo(current, item, uid)
-  dispatch(
-    memoListSlice.actions.addItem({
-      current,
-      item: { ...item, ...newItem },
-    }),
-  )
-}
-
-const updateMemoItem = (
-  current,
-  data,
-) => async (dispatch) => {
-  const item = createMemoListItem(data)
-  await store.updateMemo(current, item)
-  dispatch(memoListSlice.actions.setItem({ current, item }))
-}
-
-const deleteMemoItem = (
-  current,
-  data,
-) => async (dispatch) => {
-  const item = createMemoListItem(data)
-  await store.deleteMemo(current, item)
-  dispatch(memoListSlice.actions.deleteItem({ current, item }))
-}
-
-//TODO:useViewmodel
-const searchLimit = 50;
-const useViewModel = () => {
-
-  const dispatch = useDispatch();
-
-  //初期読み込み
-  useEffect(()=>{
-    // dispatch(createAuthClientSide())
-    dispatch(readMemoList(defaultGenre));
-  })
-
-  return useSelector((state)=>{
-    const stateMemo = state.memo;
-    //console.log(stateMemo.current);
-    const editHandler = {
-        isDeletable: (rowData) => console.log(rowData),
-        onRowAdd: async (newData) => {
-          dispatch(addMemoItem(memoList.current, newData))
-        },
-        onRowUpdate: async (newData, oldData) => {
-          dispatch(updateMemoItem(memoList.current, newData))
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve()
-            }, 300)
-          })
-        },
-        onRowDelete: (oldData) => {
-          dispatch(deleteMemoItem(memoList.current, oldData))
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve()
-            }, 300)
-          })
-        },
-      }
-    const options = {
-      sorting: false,
-      paging: false,
-      rowStyle: {
-        whiteSpace: 'nowrap',
-      },
-      headerStyle: {
-        whiteSpace: 'nowrap',
-      },
-      actionsColumnIndex: 6,
-      addRowPosition: 'first',
-    }
-    //console.log(stateMemo.list[stateMemo.current])
-    return{
-      currentName: stateMemo.current, 
-      data: stateMemo.list[stateMemo.current].map((item)=>({...item, tags: item.tags.join(separator),})),
-      options: options,
-      editHandler,
-      searchTags: memoList.searchTags,
-      searchHandler: () => {
-        dispatch(
-          readMemoList(
-            memoList.current,
-            searchLimit,
-            memoListSlice.actions.separateTags(memoList.searchTags),
-            memoList.isSortCreated,
-          ),
-        )
-      },
-      //searchTagsChangeHandler: (e) => dispatch(setSearchTags(e.target.value)),
-      toggleIsSortCreated: (event) => {
-        dispatch(memoListSlice.actions.setIsSortCreated(event.target.checked))
-      },
-      isSortCreated: memoList.isSortCreated,
-      tagClickHandler: async (tag) => {
-        dispatch(memoListSlice.actions.setSearchTags(tag))
-      },
-      localization: {
-        header: {
-          actions: '',
-        },
-        body: {
-          editRow: { deleteText: '削除しますか?' },
-          addTooltip: '新しい行を追加',
-          deleteTooltip: '削除',
-          editTooltip: '削除',
-        },
-        toolbar: { searchPlaceholder: '検索結果の絞り込み' },
-      },
-      //auth: authUser,
-      pointClickHandler: async (memo) => {
-        dispatch(
-          updateMemoItem(memoList.current, {
-            ...memo,
-            point: memo.point + 1,
-          }),
-        )
-      },
-      currentName: genres[memoList.current],
-      genres: genres,
-      genreChangeHandler: (genre) => {
-        dispatch(memoListSlice.actions.setCurrent(genre))
-        if (memoList.list[genre].length !== 0) return
-        dispatch(
-          readMemoList(
-            genre,
-            searchLimit,
-            memoListSlice.actions.separateTags(memoList.searchTags),
-            memoList.isSortCreated,
-          ),
-        )
-      },
-    }
-  })
-}
-const TableIcons = {
-  Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
-  Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
-  Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Delete: forwardRef((props, ref) => <DeleteOutline {...props} ref={ref} />),
-  DetailPanel: forwardRef((props, ref) => (
-    <ChevronRight {...props} ref={ref} />
-  )),
-  Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
-  Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
-  Filter: forwardRef((props, ref) => <FilterList {...props} ref={ref} />),
-  FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
-  LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-  NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-  PreviousPage: forwardRef((props, ref) => (
-    <ChevronLeft {...props} ref={ref} />
-  )),
-  ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
-  SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
-  ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
-  ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
-}
-const MemoList = () => {
-  const vm = useViewModel();
-  const [value, setValue] = useState(0);
-  const columns = [
-    {title: '★', field: 'point', type: 'numeric', editable: 'never', renderData: '',},
-    {title: '名称', field: 'nickname',renderData: '',},
-    {title: '名前', field: 'name',renderData: '',},
-    {title: 'タグ', field: 'tag',renderData: '',},
-    {title: '', field: '',renderData: '',},
-    {title: '', field: '',renderData: '',},
-  ]
-
-  return(
-    <Container>
-      {/* //title */}
-      <Typography>Memo List</Typography>
-      {/* //login */}
-      <p>
-        <Link href={'/auth/login'}>Login</Link>
-      </p>
-      {/* //paper */}
-      {/* //search */}
-      {/* materailTable */}
-      <MaterialTable
-        title={vm.currentName}
-        icons={TableIcons}
-        options={vm.options}
-        columns={columns}
-        data={vm.data}
-        editable={vm.editHandler}
-        localization={vm.localization}
-      />
-      <Link href='/'>Back</Link>
-    </Container>
-  )
-}
-const MyApp = () => {
-
-  return(
-    <Provider store={store}>
-      <React.Fragment>
-          <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            {/* <I18n lngDict={pageProps.lngDict} locale={pageProps.lng}>
-              <Component {...pageProps} />
-            </I18n> */}
-            <MemoList />
-            <Home />
-          </ThemeProvider>
-        </React.Fragment>
-    </Provider>
-  )
-}
-const CardJP = {
- card1: {
-  id:1,
-  title: "hiragana",
-  name:"hiragana",
-  constent: {
-    
-  }
- } 
-}
-export default MyApp;
-
-
+export default RefireCrud;
