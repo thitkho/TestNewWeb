@@ -7,8 +7,21 @@ import {
   createSlice,
   createAsyncThunk,
   createEntityAdapter,
-  createSelector
-} from '@reduxjs/toolkit'
+  createSelector,
+  nanoid
+} from '@reduxjs/toolkit';
+import Typography from "@mui/material/Typography";
+import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import Radio from "@material-ui/core/Radio";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import Slider from "@material-ui/core/Slider";
+import Button from "@material-ui/core/Button";
 // import rootReducer from './rootState'
 import { createServer } from "miragejs"
 import logger from 'redux-logger'
@@ -16,18 +29,16 @@ import { Provider, useDispatch, useSelector } from 'react-redux'
 import thunk from 'redux-thunk'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
-import { Container, CssBaseline, Link, TextField, Typography } from '@mui/material';
+import { Avatar, Card, CardActions, CardContent, CardHeader, CardMedia, Checkbox, Collapse, Container, CssBaseline, LinearProgress, Link, styled} from '@mui/material';
 import {
   Box,
-  Button,
   Switch,
-  FormControlLabel,
   Chip,
   Paper,
   Tabs,
   Tab,
 } from '@mui/material'
-import { Input, Search, StarBorder } from '@mui/icons-material'
+import { ExpandMoreOutlined, Input, MoreVert, Search, Share, StarBorder } from '@mui/icons-material'
 import MaterialTable from 'material-table'
 import AddBox from '@mui/icons-material/AddBox'
 import ArrowDownward from '@mui/icons-material/ArrowDownward'
@@ -51,7 +62,9 @@ import { useRef } from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
-
+import Favorite from "@mui/icons-material/Favorite";
+import { MaterialUIControllerProvider, PlanUp, themeLight } from "../fullAppUi";
+const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
 const availableColors = ['green', 'blue', 'orange', 'purple', 'red']
 
 const capitalize = (s) => s[0].toUpperCase() + s.slice(1)
@@ -62,17 +75,66 @@ const data = {
     id:1,
     title: "base",
     name: "hiragana",
-    content:{
+    count: 0,
+    description:{
       a:{
         
       }
     }
-  }
+  },
+  card2:{
+    id:2,
+    title: "base",
+    name: "katakana",
+    description:{
+      
+    }
+  },
+  card3:{
+    id:3,
+    title: "kotoba",
+    name: "ad",
+    description:{
+      
+    }
+  },
 }
-const detail = {
-  mean:"",
-  read:"",
-  write:"",
+//Pre-Begin-intermediate-advenced-expert-master
+const detail_type1 = {    //文字
+  mean:[],      //tieng viet
+  howToUse:[],  //list string
+  sample:[],
+  read:[],      //romaji
+  write:[],     //japanese
+  kanji:[],     //
+  count: 0,     //use count 
+}
+const detailBegin = {   //言葉
+  mean:[],      //tieng viet
+  howToUse:[],  //list string
+  sample:[],
+  read:[],      //romaji
+  write:[],     //japanese
+  kanji:[],     //
+  count: 0,     //use count 
+}
+const detail = {        //漢字
+  mean:[],      //tieng viet
+  howToUse:[],  //list string
+  sample:[],
+  read:[],      //romaji
+  write:[],     //japanese
+  kanji:[],     //
+  count: 0,     //use count 
+}
+const detailInter = {   //文法
+  mean:[],      //tieng viet
+  howToUse:[],  //list string
+  sample:[],
+  read:[],      //romaji
+  write:[],     //japanese
+  kanji:[],     //
+  count: 0,     //use count 
 }
 //firebase
 const firebaseConfig2 = {
@@ -110,6 +172,10 @@ const todoAdapter = createEntityAdapter();
 const initState = todoAdapter.getInitialState({
   status: 'idle',
 })
+// const getDataTodo = () => {
+
+//   return
+// }
 //thunks
 const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   // const reponse = await 
@@ -127,7 +193,7 @@ const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   fetch("/fetchApi/todos")
   .then((res)=>res.json())
   .then((json)=>{
-    json.map((item)=>todos.push(item));
+    json.todos.map((item)=>todos.push(item));
   })
   console.log("todos:", todos);
   
@@ -135,6 +201,28 @@ const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
 
   
 });
+const setTodo = async (text) => {
+  console.log("test text:", text)
+  const todoRef = collection(db, "plan");
+  const item = {
+    id: nanoid(),
+    title: "shopping",
+    content: text,
+    time: "2022/07/04"
+  }
+  //const response = 
+  await setDoc(doc(todoRef, "plan"+item.id), item)
+  // .then((res)=>{
+  //   console.log(res);
+  //   return item;
+  // })
+  // .catch((err)=>{
+  //   console.log(err);
+  // });
+  // console.log("test end:",response)
+  return item;
+
+}
 export const saveNewTodo = createAsyncThunk('todos/saveNewTodo', async (text) => {
   // console.log(text);
   // const initialTodo = { text }
@@ -145,6 +233,11 @@ export const saveNewTodo = createAsyncThunk('todos/saveNewTodo', async (text) =>
   const initialTodo = { text }
   // const response = await client.post('/fakeApi/todos', { todo: initialTodo })
   // return response.todo
+  const response = setTodo(text)
+  console.log("save: ", response);
+
+  return response;
+
 });
 const todoSlice = createSlice({
   name: 'todo',
@@ -205,7 +298,7 @@ const todoSlice = createSlice({
       todoAdapter.setAll(state, action.payload);
       state.status = 'idle'
     })
-    .addCase(saveNewTodo.fulfilled, (state, action)=>todoAdapter.addOne)
+    .addCase(saveNewTodo.fulfilled, (state, action)=>todoAdapter.addOne(state, action.payload))
     // .addCase(saveNewTodo.fulfilled, (state, action)=>{
     //   const todo = action.payload
     //   state.entities[todo.id] = todo
@@ -311,6 +404,9 @@ const filtersSlice = createSlice({
 
 const { colorFilterChanged, statusFilterChanged } = filtersSlice.actions
 
+const initPlan = [
+
+]
 const planSlice = createSlice({
   name: 'plan',
   initialState: [],
@@ -525,7 +621,7 @@ const Footer = () => {
   const dispatch = useDispatch()
 
   const todosRemaining = useSelector((state) => {
-    // console.log("state",state);
+    console.log("state",state);
     const uncompletedTodos = selectTodo(state).filter(
       (todo) => !todo.completed
     )
@@ -561,33 +657,319 @@ const Footer = () => {
   )
 }
 
-let server = createServer();
-server.get("/api/users", { users: [{ id: 1, name: "Bob" }] });
+// let server = createServer();
+// server.get("/api/users", { users: [{ id: 1, name: "Bob", age: 30 }] });
 // server.get("/api/todos", { todos: [{ id: 1, content: "tan dep" }] });
-server.get("/fetchApi/todos", {todos: [
-  {id: 1, content: "abc", completed: false, color: 'blue'},
-  {id: 2, content: "tan dep trai", completed: false, color: 'green'},
-  {id: 3, content: "learn redux", completed: false, color: 'red'},
-  {id: 4, content: "learn angula", completed: true, color: 'blue'},
-  {id: 5, content: "learn react", completed: false, color: 'blue'},
-]})
+// server.get("/fetchApi/todos", {todos: [
+//   {id: 1, content: "abc", completed: false, color: 'blue'},
+//   {id: 2, content: "tan dep trai", completed: false, color: 'green'},
+//   {id: 3, content: "learn redux", completed: false, color: 'red'},
+//   {id: 4, content: "learn angula", completed: true, color: 'blue'},
+//   {id: 5, content: "learn react", completed: false, color: 'blue'},
+// ]})
+const ExpandMore = styled((props) => {
+  const { expand, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
+const LinearProgressLabel = (props) => {
 
+  return(
+    <Box sx={{display: 'flex', alignItems: 'center'}}>
+      <Box sx={{width: '100%', mr: 1}}>
+        <LinearProgress variant="determinate" {...props}/>
+      </Box>
+      <Box sx={{minWidth: 35}}>
+        <Typography variant="body2" color={"text.secondary"}>
+          {`${Math.round(props.value)}%`}
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
+const CardCom = (
+
+) => {
+  
+  const [expanded, setExpanded] = React.useState(false);
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+  const [progress, setProgress] = useState(10);
+
+  useEffect(()=>{
+    const timer = setInterval(()=>{
+      setProgress((prevProgress)=>(prevProgress >= 100?10:prevProgress+10))
+    }, 1000);
+    return()=>{
+      clearInterval(timer);
+    };
+  },[]);
+  return(
+    <Card sx={{maxWidth: 450, zIndex: 5}}>
+      <CardHeader
+        avatar={
+          <Avatar sx={{ bgcolor: red[500], borderRadius:2 }} aria-label="recipe">
+            R
+          </Avatar>
+        }
+        action={
+          <IconButton aria-label="settings">
+            <MoreVert />
+          </IconButton>
+        }
+        title="Shrimp and Chorizo Paella"
+        subheader="September 14, 2016"
+        onClick={()=>console.log("card Header click")}
+      />
+      <CardMedia
+        component="img"
+        height="50"
+        image="/logo512.png"
+        alt="Paella dish"
+        sx={(theme)=>{
+          return{
+            position: 'absolute',
+            zIndex: -1,
+
+          }
+        }}
+      />
+      <CardContent>
+        <Typography variant="body2" color="text.secondary">
+          This impressive paella is a perfect party dish and a fun meal to cook
+          together with your guests. Add 1 cup of frozen peas along with the mussels,
+          if you like.
+        </Typography>
+      </CardContent>
+      <Box sx={{width: '100%'}}>
+        <LinearProgressLabel value = {progress}/>
+      </Box>
+      
+      <CardActions disableSpacing>
+        <IconButton aria-label="add to favorites" sx={{
+          borderRadius:10,
+          backgroundColor: 'blue',
+        }}>
+          <Favorite />
+        </IconButton>
+        <IconButton aria-label="share" sx={{
+          borderRadius:10,
+          backgroundColor: 'blue',
+        }}>
+          <Share />
+        </IconButton>
+        <ExpandMore
+          expand={expanded}
+          onClick={handleExpandClick}
+          aria-expanded={expanded}
+          aria-label="show more"
+        >
+          <ExpandMoreOutlined />
+        </ExpandMore>
+      </CardActions>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <CardContent>
+          <Typography paragraph>Method:</Typography>
+          <Typography paragraph>
+            Heat 1/2 cup of the broth in a pot until simmering, add saffron and set
+            aside for 10 minutes.
+          </Typography>
+          <Typography paragraph>
+            Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over
+            medium-high heat. Add chicken, shrimp and chorizo, and cook, stirring
+            occasionally until lightly browned, 6 to 8 minutes. Transfer shrimp to a
+            large plate and set aside, leaving chicken and chorizo in the pan. Add
+            pimentón, bay leaves, garlic, tomatoes, onion, salt and pepper, and cook,
+            stirring often until thickened and fragrant, about 10 minutes. Add
+            saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
+          </Typography>
+          <Typography paragraph>
+            Add rice and stir very gently to distribute. Top with artichokes and
+            peppers, and cook without stirring, until most of the liquid is absorbed,
+            15 to 18 minutes. Reduce heat to medium-low, add reserved shrimp and
+            mussels, tucking them down into the rice, and cook again without
+            stirring, until mussels have opened and rice is just tender, 5 to 7
+            minutes more. (Discard any mussels that don&apos;t open.)
+          </Typography>
+          <Typography>
+            Set aside off of the heat to let rest for 10 minutes, and then serve.
+          </Typography>
+        </CardContent>
+      </Collapse>
+    </Card>
+  )
+}
+
+
+const defaultValues = {
+  name: "",
+  age: 0,
+  gender: "",
+  os: "",
+  favoriteNumber: 0,
+};
+const Form = () => {
+  const [formValues, setFormValues] = useState(defaultValues);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({
+      ...formValues,
+      [name]: value,
+    });
+  };
+  const handleSliderChange = (name) => (e, value) => {
+    setFormValues({
+      ...formValues,
+      [name]: value,
+    });
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(formValues);
+  };
+  return (
+    <form onSubmit={handleSubmit}>
+      <Grid container alignItems="center" justifyContent="center" direction="column">
+        <Grid item>
+          <TextField
+            id="name-input"
+            name="name"
+            label="Name"
+            type="text"
+            value={formValues.name}
+            onChange={handleInputChange}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            id="age-input"
+            name="age"
+            label="Age"
+            type="number"
+            value={formValues.age}
+            onChange={handleInputChange}
+          />
+        </Grid>
+        <Grid item>
+          <FormControl>
+            <FormLabel>Gender</FormLabel>
+            <RadioGroup
+              name="gender"
+              value={formValues.gender}
+              onChange={handleInputChange}
+              row
+            >
+              <FormControlLabel
+                key="male"
+                value="male"
+                control={<Radio size="small" />}
+                label="Male"
+              />
+              <FormControlLabel
+                key="female"
+                value="female"
+                control={<Radio size="small" />}
+                label="Female"
+              />
+              <FormControlLabel
+                key="other"
+                value="other"
+                control={<Radio size="small" />}
+                label="Other"
+              />
+            </RadioGroup>
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <FormControl>
+            <Select
+              name="os"
+              value={formValues.os}
+              onChange={handleInputChange}
+            >
+              <MenuItem key="mac" value="mac">
+                Mac
+              </MenuItem>
+              <MenuItem key="windows" value="windows">
+                Windows
+              </MenuItem>
+              <MenuItem key="linux " value="linux">
+                Linux
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <div style={{ width: "400px" }}>
+            Favorite Number
+            <Slider
+              value={formValues.favoriteNumber}
+              onChange={handleSliderChange("favoriteNumber")}
+              defaultValue={1}
+              step={1}
+              min={1}
+              max={3}
+              marks={[
+                {
+                  value: 1,
+                  label: "1",
+                },
+                {
+                  value: 2,
+                  label: "2",
+                },
+                {
+                  value: 3,
+                  label: "3",
+                },
+              ]}
+              valueLabelDisplay="off"
+            />
+          </div>
+        </Grid>
+        <Button variant="contained" color="primary" type="submit">
+          Submit
+        </Button>
+      </Grid>
+    </form>
+  );
+};
 
 const RefireCrud = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(()=>{
-    store.dispatch(fetchTodo());
+    //store.dispatch(fetchTodo());
+    // const test = async () => await setDoc(doc(collection(db, "plan"), "plan1"), {
+    //   id: 1,
+    //   title: "learn",
+    //   content: "hoc nua hoc mai"
+    // });
+    // test()
+    // .then((res)=> console.log("sucess"))
+    // .catch((err)=> console.log("error"))
+    // console.log("test useEffect")
+    
   },[]);
-  useEffect(()=>{
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((json) => {
-        setUsers(json.users)
-      })
-  },[])
+  // useEffect(()=>{
+  //   fetch("/api/users")
+  //     .then((res) => res.json())
+  //     .then((json) => {
+  //       setUsers(json.users)
+  //     })
+  // },[])
   return(
     <Provider store={store}>
+      <MaterialUIControllerProvider>
+      <ThemeProvider theme={themeLight}>
+        
       <div>
         <nav>
           <section>
@@ -599,18 +981,35 @@ const RefireCrud = () => {
           <section>
             <h2>Todos</h2>
             <div>
-              {/* <HeaderTodo />
+              <HeaderTodo />
               <TodoList />
-              <Footer /> */}
+              <Footer />
             </div>
           </section>
         </main>
-        <ul>
+        {/* <ul>
           {users.map((user) => (
-                <li key={user.id}>{user.name}</li>
+                <li key={user.id}>{user.name}:{user.age}</li>
               ))}
-        </ul>
+        </ul> */}
+        <div style={{
+          margin: 20, 
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignContent: 'center',
+          backgroundColor: 'aqua'
+        }}>
+          <PlanUp />
+        </div>
+        
+        <div>
+          <CardCom />
+        </div>
       </div>
+      </ThemeProvider>
+
+      </MaterialUIControllerProvider>
+
     </Provider>
 
   )
@@ -651,13 +1050,13 @@ function TestCrud() {
   } 
   //UPDATE A DOC
 
-async function updateDocument(id) {
-  const itemRef = doc(db, "shopping-lists", id);
-  let name =  prompt("What would you like to update it to?")
-  setDoc(itemRef, {
-    name: name,
-    timestamp: new Date()
-  })
+  async function updateDocument(id) {
+    const itemRef = doc(db, "shopping-lists", id);
+    let name =  prompt("What would you like to update it to?")
+    setDoc(itemRef, {
+      name: name,
+      timestamp: new Date()
+    })
   
 }
   
@@ -699,3 +1098,184 @@ async function updateDocument(id) {
   );
 }
 export default RefireCrud;
+
+//------------------------------------------------ new plan-----------------
+
+function CardLayout({cardHeight, cardWidth, image, children }) {
+
+  // console.log("Basic layout");
+  return (
+    <TTBox
+      width={cardWidth}
+      height={cardHeight}
+      sx={{ overflowX: "hidden" }}
+    >
+      <TTBox
+        position="absolute"
+        width={cardWidth}
+        minHeight={cardHeight}
+        zIndex={-1}
+        sx={{
+          backgroundImage: ({ functions: { linearGradient, rgba }, palette: { gradients } }) =>
+            image &&
+            `${linearGradient(
+              rgba(gradients.info.main, 0.5),
+              rgba(gradients.info.state, 0.5)
+            )}, url(${image})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <TTBox px={1} width="100%" height="100%" mx="auto">
+        <Grid container spacing={1} justifyContent="center" alignItems="center" height="100%">
+          <Grid item xs={11} sm={9} md={5} lg={4} xl={3}>
+            {children}
+          </Grid>
+        </Grid>
+      </TTBox>
+    </TTBox>
+  );
+}
+export const PlanUp = () => {
+  const [age, setAge] = React.useState('');
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
+  //
+  const handleSubmit = (event) => {
+      event.preventDefault();
+      //firebase
+      const { email, password } = event.target.elements;
+
+  }
+  return (
+    <CardLayout image={bgImage} cardWidth={550} cardHeight={550}>
+    {/* <BasicLayout image={bgTest2}> */}
+      <Card sx={{mt: 5, }}>
+        <TTBox
+          variant="gradient"
+          bgColor="info"
+          borderRadius="lg"
+          coloredShadow="info"
+          mx={2}
+          mt={-3}
+          p={2}
+          mb={1}
+          textAlign="center"
+        >
+          <TTTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+            Plan
+          </TTTypography>
+          {/* <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
+            <Grid item xs={2}>
+              <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+                <FacebookIcon color="inherit" fontSize="small"/>
+              </TTTypography>
+            </Grid>
+            <Grid item xs={2}>
+              <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+                <GitHubIcon color="inherit" fontSize="small"/>
+              </TTTypography>
+            </Grid>
+            <Grid item xs={2}>
+              <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+                <GoogleIcon color="inherit" fontSize="small"/>
+              </TTTypography>
+            </Grid>
+          </Grid> */}
+        </TTBox>
+        <TTBox pt={4} pb={3} px={3}>
+          <TTBox component="form" role="form" onSubmit={handleSubmit}>
+            <Grid container justifyContent={"center"} spacing={2}>
+              <Grid item xs={10}>
+                <TextField
+                    id="outlined-select-currency"
+                    select
+                    label="Level"
+                    value={age}
+                    onChange={handleChange}
+                    helperText="Please select your currency"
+                    fullWidth
+                  >
+                    <MenuItem value={10}>Ten</MenuItem>
+                    <MenuItem value={20}>Twenty</MenuItem>
+                    <MenuItem value={30}>Thirty</MenuItem>
+                  {/* {currencies.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))} */}
+                  </TextField>
+                  {/* <TextField
+                    type="select"
+                    value={age}
+                    label="Age"
+                    name='Age'
+                    onChange={handleChange}
+                  >
+                    <MenuItem value={10}>Ten</MenuItem>
+                    <MenuItem value={20}>Twenty</MenuItem>
+                    <MenuItem value={30}>Thirty</MenuItem>
+                  </TextField> */}
+              </Grid>
+              <Grid item xs={10}>
+                <TTInput 
+                  type="combobox" 
+                  name="name plan" 
+                  label=""
+                  fullWidth
+                  // disabled 
+                  // error
+                  // success
+                />
+              </Grid>              
+              <Grid item>
+                <TTInput type="list" label="" name="password" fullWidth />
+              </Grid>
+              <Grid item display="flex" flexDirection={"row"}>
+                <TTInput type="date" label="date start" name="dateStart" mr={2} fullWidth />
+                <TTInput type="date" label="date end" name="dateEnd" fullWidth />
+              </Grid>
+              <Grid item>
+              
+              </Grid>
+            </Grid>
+            {/* <TTBox mb={2}>
+            <TTInput 
+                  type="combobox" 
+                  name="name plan" 
+                  label=""
+                  fullWidth
+                  // disabled 
+                  // error
+                  // success
+                />
+            </TTBox>
+            <TTBox mb={2}>
+              <TTInput type="text" label="" name="password" fullWidth />
+            </TTBox>
+            <TTBox mb={2} display="flex" flexDirection="row">
+            <TTInput type="date" label="date start" name="dateStart" mr={2} fullWidth />
+            <TTInput type="date" label="date end" name="dateEnd" fullWidth />
+            </TTBox> */}
+            <TTBox mt={2} mb={1}>
+              <TTButton 
+                variant="gradient" 
+                color="info" 
+                fullWidth = {true}
+                type="submit"
+                // onClick={handleSubmit}
+              >
+                Create Plan
+              </TTButton>
+            </TTBox>
+          </TTBox>
+        </TTBox>
+      </Card>
+    </CardLayout>
+  );
+}
+//------------------------------------------------ new plan-----------------
+https://quizizz.com/
