@@ -63,8 +63,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
 import Favorite from "@mui/icons-material/Favorite";
-import { MaterialUIControllerProvider, PlanUp, themeLight } from "../fullAppUi";
+import { MaterialUIControllerProvider, themeLight, TTBox, TTButton, TTInput, TTTypography } from "../fullAppUi";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
+const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
 const availableColors = ['green', 'blue', 'orange', 'purple', 'red']
 
 const capitalize = (s) => s[0].toUpperCase() + s.slice(1)
@@ -163,10 +165,10 @@ const useFirestore =(path) => {
   }
 }
 //redux
-const initTodo = {
-  status: 'idle',
-  entities:{}
-}
+// const initTodo = {
+//   status: 'idle',
+//   entities:{}
+// }
 //
 const todoAdapter = createEntityAdapter();
 const initState = todoAdapter.getInitialState({
@@ -195,14 +197,14 @@ const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   .then((json)=>{
     json.todos.map((item)=>todos.push(item));
   })
-  console.log("todos:", todos);
+  // console.log("todos:", todos);
   
   return todos;
 
   
 });
 const setTodo = async (text) => {
-  console.log("test text:", text)
+  // console.log("test text:", text)
   const todoRef = collection(db, "plan");
   const item = {
     id: nanoid(),
@@ -234,7 +236,7 @@ export const saveNewTodo = createAsyncThunk('todos/saveNewTodo', async (text) =>
   // const response = await client.post('/fakeApi/todos', { todo: initialTodo })
   // return response.todo
   const response = setTodo(text)
-  console.log("save: ", response);
+  // console.log("save: ", response);
 
   return response;
 
@@ -351,7 +353,7 @@ const selectFilteredTodoIds = createSelector(
   selectFilteredTodos,
   // And derive data in the output selector
   (filteredTodos) => filteredTodos.map((todo) => {
-    console.log("todo",todo);
+    // console.log("todo",todo);
     return todo.id
   })
 )
@@ -404,13 +406,21 @@ const filtersSlice = createSlice({
 
 const { colorFilterChanged, statusFilterChanged } = filtersSlice.actions
 
-const initPlan = [
-
-]
+const planAdapter = createEntityAdapter();
+const planInit = planAdapter.getInitialState({
+  status: 'idle',
+});
+const planCreateNew = createAsyncThunk("plan/planCreateNew", async (item)=>{
+  console.log(item);
+})
 const planSlice = createSlice({
   name: 'plan',
-  initialState: [],
+  initialState: planInit,
   reducers: {
+    planCreateNewOne(state, action){
+      console.log(action.payload);
+      // planAdapter.addOne(action.payload);
+    },
     planAdded(state,action){state.push(action.payload)},
     planToggled(state, action){
       const todo = state.find(todo => todo.id === action.payload)
@@ -419,8 +429,20 @@ const planSlice = createSlice({
     planLoading(state, actions){
       return{...state, status: 'loading'}
     }
+  },
+  extraReducers:{
+    [planCreateNew.fulfilled]:(state, action)=>planAdapter.addOne(action.payload),
   }
-})
+  // extraReducers: (build)=>{build
+  //   .addCase(planCreateNew.fulfilled, (state, action)=>planAdapter.addOne(state, action));
+  // }
+});
+const { planCreateNewOne } = planSlice.actions;
+const { selectAll: selectPlan } = planAdapter.getSelectors((state)=>state.plan)
+// const filterTest = createSelector(
+//   selectPlan,
+//   (plans)=> plans
+// )
 const RootReducers = combineReducers({
   todos: todoSlice.reducer,
   filters: filtersSlice.reducer,
@@ -597,7 +619,7 @@ const TodoListItem = ({ id }) => {
 const TodoList = () => {
 
   const todoIds = useSelector(selectFilteredTodoIds)
-  console.log("todoIds",todoIds)
+  // console.log("todoIds",todoIds)
   const loadingStatus = useSelector((state) => state.todos.status)
 
   if (loadingStatus === 'loading') {
@@ -621,7 +643,7 @@ const Footer = () => {
   const dispatch = useDispatch()
 
   const todosRemaining = useSelector((state) => {
-    console.log("state",state);
+    // console.log("state",state);
     const uncompletedTodos = selectTodo(state).filter(
       (todo) => !todo.completed
     )
@@ -697,6 +719,9 @@ const CardCom = (
 
 ) => {
   
+  // const plan = useSelector(filterTest);
+  // const plan1 = useSelector(state=>state.plan)
+  // console.log(plan);
   const [expanded, setExpanded] = React.useState(false);
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -807,7 +832,173 @@ const CardCom = (
   )
 }
 
+function CardLayout({cardHeight, cardWidth, image, children }) {
 
+  // console.log("Basic layout");
+  return (
+    <TTBox
+      width={cardWidth}
+      height={cardHeight}
+      sx={{ overflowX: "hidden" }}
+    >
+      <TTBox
+        position="absolute"
+        // width={cardWidth}
+        // minHeight={cardHeight}
+        zIndex={-1}
+        sx={{
+          backgroundImage: ({ functions: { linearGradient, rgba }, palette: { gradients } }) =>
+            image &&
+            `${linearGradient(
+              rgba(gradients.info.main, 0.5),
+              rgba(gradients.info.state, 0.5)
+            )}, url(${image})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <TTBox px={1} width="100%" height="100%" mx="auto">
+        <Grid container spacing={1} justifyContent="center" alignItems="center" height="100%">
+          <Grid item xs={11} sm={9} md={5} lg={4} xl={3}>
+            {children}
+          </Grid>
+        </Grid>
+      </TTBox>
+    </TTBox>
+  );
+}
+const Level = {
+  n0: {
+    id: 0,
+    text: "N0",
+  },
+  n1: {
+    id: 1,
+    text: "jlpt N1",
+  },
+  n2: {
+    id: 2,
+    text: "jlpt N2",
+  },
+  n3: {
+    id: 3,
+    text: "jlpt N3",
+  },
+  n4: {
+    id: 4,
+    text: "jlpt N4",
+  },
+  n5: {
+    id: 5,
+    text: "jlpt N5",
+  },
+  np: {
+    id: 6,
+    text: "Np",
+  },
+}
+const PlanUp = () => {
+  const [age, setAge] = useState('');
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
+  //
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const { plan, planName, dateStart, dateEnd, info } = event.target.elements;
+    
+    const planItem = {
+      target: "N5",
+      planName: "planName_test",
+      info: "info_test",
+      time: "dateEnd - dateStart_test",
+    }
+    console.log(planItem);
+    // await dispatch(planCreateNew(planItem))
+
+    navigate("/card");
+  }
+  return (
+    <CardLayout image={bgImage} cardWidth={550} cardHeight={550}>
+    {/* <BasicLayout image={bgTest2}> */}
+      <Card sx={{mt: 5, }}>
+        <TTBox
+          variant="gradient"
+          bgColor="info"
+          borderRadius="lg"
+          coloredShadow="info"
+          mx={2}
+          mt={-3}
+          p={2}
+          mb={1}
+          textAlign="center"
+        >
+          <TTTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+            Plan
+          </TTTypography>
+        </TTBox>
+        <TTBox pt={4} pb={3} px={3}>
+          <TTBox component="form" role="form" onSubmit={handleSubmit}>
+            <Grid container  justifyContent={"center"} spacing={2} >
+              <Grid item xs={10}>
+                <TextField
+                    select
+                    label="Target"
+                    name="plan"
+                    value={age}
+                    onChange={handleChange}
+                    helperText="Please select your target"
+                    fullWidth
+                    sx={{justifyContent: 'center', alignItem: 'center'}}
+                  >
+                    {Object.values(Level).map((item)=>(
+                      <MenuItem key={item.id} value={item.id}>{item.text}</MenuItem>
+                    ))}
+                  </TextField>
+              </Grid>
+              <Grid item xs={10} lg={2}>
+                <TTInput 
+                  type="text" 
+                  name="nameplan" 
+                  label="Plan name"
+                  fullWidth
+                  // disabled 
+                  // error
+                  // success
+                />
+              </Grid>              
+              <Grid item xs={10} lg={2}>
+                <TTInput type="list" label="info" name="info" fullWidth />
+              </Grid>
+              <Grid item display="flex" xs={10} lg={2}>
+                <TTInput type="date" label="date start" name="dateStart" mr={2} fullWidth />
+                <TTInput type="date" label="date end" name="dateEnd" fullWidth />
+              </Grid>
+              <Grid item>
+              
+              </Grid>
+            </Grid>
+            <TTBox mt={2} mb={1}>
+              <TTButton 
+                variant="gradient" 
+                color="info" 
+                fullWidth = {true}
+                type="submit"
+              >
+                Create Plan
+              </TTButton>
+            </TTBox>
+          </TTBox>
+        </TTBox>
+      </Card>
+    </CardLayout>
+  );
+}
 const defaultValues = {
   name: "",
   age: 0,
@@ -944,7 +1135,7 @@ const Form = () => {
 
 const RefireCrud = () => {
   const [users, setUsers] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(()=>{
     //store.dispatch(fetchTodo());
     // const test = async () => await setDoc(doc(collection(db, "plan"), "plan1"), {
@@ -966,52 +1157,48 @@ const RefireCrud = () => {
   //     })
   // },[])
   return(
-    <Provider store={store}>
-      <MaterialUIControllerProvider>
-      <ThemeProvider theme={themeLight}>
-        
-      <div>
-        <nav>
-          <section>
-            <h1>Redux Fundamentals Example</h1>
-
-          </section>
-        </nav>
-        <main>
-          <section>
-            <h2>Todos</h2>
-            <div>
-              <HeaderTodo />
-              <TodoList />
-              <Footer />
-            </div>
-          </section>
-        </main>
-        {/* <ul>
-          {users.map((user) => (
-                <li key={user.id}>{user.name}:{user.age}</li>
-              ))}
-        </ul> */}
-        <div style={{
-          margin: 20, 
-          justifyContent: 'center',
-          alignItems: 'center',
-          alignContent: 'center',
-          backgroundColor: 'aqua'
-        }}>
-          <PlanUp />
-        </div>
-        
+      <Provider store={store}>
+        <MaterialUIControllerProvider>
+        <ThemeProvider theme={themeLight}>
+          
         <div>
-          <CardCom />
+          <nav>
+            <section>
+              <h1>Redux Fundamentals Example</h1>
+
+            </section>
+          </nav>
+          <main>
+            <section>
+              <h2>Todos</h2>
+              <div>
+                <HeaderTodo />
+                <TodoList />
+                <Footer />
+              </div>
+            </section>
+          </main>
+          {/* <ul>
+            {users.map((user) => (
+                  <li key={user.id}>{user.name}:{user.age}</li>
+                ))}
+          </ul> */}
+
+
         </div>
-      </div>
-      </ThemeProvider>
+        <Routes>
+            <Route path="/" element={<TTButton onClick={()=>{
+              console.log("button click");
+              navigate("/plan")
+            }}>new plan</TTButton>}/>
+            <Route path="/plan" element={<PlanUp/>}/>
+            <Route path="/card" element={<CardCom/>}/>
+          </Routes>
+        </ThemeProvider>
 
-      </MaterialUIControllerProvider>
+        </MaterialUIControllerProvider>
 
-    </Provider>
-
+      </Provider>
   )
 }
 function TestCrud() {
@@ -1046,7 +1233,7 @@ function TestCrud() {
   //DELETE A DOC
   async function deleteDocument(id) {
       let request = await deleteDoc(doc(db, "shopping-lists", id));
-      console.log(request)
+      // console.log(request)
   } 
   //UPDATE A DOC
 
@@ -1099,6 +1286,182 @@ function TestCrud() {
 }
 export default RefireCrud;
 
-
 //------------------------------------------------ new plan-----------------
-https://quizizz.com/
+
+// function CardLayout({cardHeight, cardWidth, image, children }) {
+
+//   // console.log("Basic layout");
+//   return (
+//     <TTBox
+//       width={cardWidth}
+//       height={cardHeight}
+//       sx={{ overflowX: "hidden" }}
+//     >
+//       <TTBox
+//         position="absolute"
+//         width={cardWidth}
+//         minHeight={cardHeight}
+//         zIndex={-1}
+//         sx={{
+//           backgroundImage: ({ functions: { linearGradient, rgba }, palette: { gradients } }) =>
+//             image &&
+//             `${linearGradient(
+//               rgba(gradients.info.main, 0.5),
+//               rgba(gradients.info.state, 0.5)
+//             )}, url(${image})`,
+//           backgroundSize: "cover",
+//           backgroundPosition: "center",
+//           backgroundRepeat: "no-repeat",
+//         }}
+//       />
+//       <TTBox px={1} width="100%" height="100%" mx="auto">
+//         <Grid container spacing={1} justifyContent="center" alignItems="center" height="100%">
+//           <Grid item xs={11} sm={9} md={5} lg={4} xl={3}>
+//             {children}
+//           </Grid>
+//         </Grid>
+//       </TTBox>
+//     </TTBox>
+//   );
+// }
+// export const PlanUp = () => {
+//   const [age, setAge] = React.useState('');
+
+//   const handleChange = (event) => {
+//     setAge(event.target.value);
+//   };
+//   //
+//   const handleSubmit = (event) => {
+//       event.preventDefault();
+//       //firebase
+//       const { email, password } = event.target.elements;
+
+//   }
+//   return (
+//     <CardLayout image={bgImage} cardWidth={550} cardHeight={550}>
+//     {/* <BasicLayout image={bgTest2}> */}
+//       <Card sx={{mt: 5, }}>
+//         <TTBox
+//           variant="gradient"
+//           bgColor="info"
+//           borderRadius="lg"
+//           coloredShadow="info"
+//           mx={2}
+//           mt={-3}
+//           p={2}
+//           mb={1}
+//           textAlign="center"
+//         >
+//           <TTTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+//             Plan
+//           </TTTypography>
+//           {/* <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
+//             <Grid item xs={2}>
+//               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+//                 <FacebookIcon color="inherit" fontSize="small"/>
+//               </TTTypography>
+//             </Grid>
+//             <Grid item xs={2}>
+//               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+//                 <GitHubIcon color="inherit" fontSize="small"/>
+//               </TTTypography>
+//             </Grid>
+//             <Grid item xs={2}>
+//               <TTTypography component={MuiLink} href="#" variant="body1" color="white">
+//                 <GoogleIcon color="inherit" fontSize="small"/>
+//               </TTTypography>
+//             </Grid>
+//           </Grid> */}
+//         </TTBox>
+//         <TTBox pt={4} pb={3} px={3}>
+//           <TTBox component="form" role="form" onSubmit={handleSubmit}>
+//             <Grid container justifyContent={"center"} spacing={2}>
+//               <Grid item xs={10}>
+//                 <TextField
+//                     id="outlined-select-currency"
+//                     select
+//                     label="Level"
+//                     value={age}
+//                     onChange={handleChange}
+//                     helperText="Please select your currency"
+//                     fullWidth
+//                   >
+//                     <MenuItem value={10}>Ten</MenuItem>
+//                     <MenuItem value={20}>Twenty</MenuItem>
+//                     <MenuItem value={30}>Thirty</MenuItem>
+//                   {/* {currencies.map((option) => (
+//                     <MenuItem key={option.value} value={option.value}>
+//                       {option.label}
+//                     </MenuItem>
+//                   ))} */}
+//                   </TextField>
+//                   {/* <TextField
+//                     type="select"
+//                     value={age}
+//                     label="Age"
+//                     name='Age'
+//                     onChange={handleChange}
+//                   >
+//                     <MenuItem value={10}>Ten</MenuItem>
+//                     <MenuItem value={20}>Twenty</MenuItem>
+//                     <MenuItem value={30}>Thirty</MenuItem>
+//                   </TextField> */}
+//               </Grid>
+//               <Grid item xs={10}>
+//                 <TTInput 
+//                   type="combobox" 
+//                   name="name plan" 
+//                   label=""
+//                   fullWidth
+//                   // disabled 
+//                   // error
+//                   // success
+//                 />
+//               </Grid>              
+//               <Grid item>
+//                 <TTInput type="list" label="" name="password" fullWidth />
+//               </Grid>
+//               <Grid item display="flex" flexDirection={"row"}>
+//                 <TTInput type="date" label="date start" name="dateStart" mr={2} fullWidth />
+//                 <TTInput type="date" label="date end" name="dateEnd" fullWidth />
+//               </Grid>
+//               <Grid item>
+              
+//               </Grid>
+//             </Grid>
+//             {/* <TTBox mb={2}>
+//             <TTInput 
+//                   type="combobox" 
+//                   name="name plan" 
+//                   label=""
+//                   fullWidth
+//                   // disabled 
+//                   // error
+//                   // success
+//                 />
+//             </TTBox>
+//             <TTBox mb={2}>
+//               <TTInput type="text" label="" name="password" fullWidth />
+//             </TTBox>
+//             <TTBox mb={2} display="flex" flexDirection="row">
+//             <TTInput type="date" label="date start" name="dateStart" mr={2} fullWidth />
+//             <TTInput type="date" label="date end" name="dateEnd" fullWidth />
+//             </TTBox> */}
+//             <TTBox mt={2} mb={1}>
+//               <TTButton 
+//                 variant="gradient" 
+//                 color="info" 
+//                 fullWidth = {true}
+//                 type="submit"
+//                 // onClick={handleSubmit}
+//               >
+//                 Create Plan
+//               </TTButton>
+//             </TTBox>
+//           </TTBox>
+//         </TTBox>
+//       </Card>
+//     </CardLayout>
+//   );
+// }
+//------------------------------------------------ new plan-----------------
