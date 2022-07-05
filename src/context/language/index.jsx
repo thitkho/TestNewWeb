@@ -65,6 +65,7 @@ import { IconButton } from '@mui/material';
 import Favorite from "@mui/icons-material/Favorite";
 import { MaterialUIControllerProvider, themeLight, TTBox, TTButton, TTInput, TTTypography } from "../fullAppUi";
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import TestCard from "./CardComponet";
 const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
 const bgImage = require("../assets/images/bg-sign-in-basic.jpeg");
 const availableColors = ['green', 'blue', 'orange', 'purple', 'red']
@@ -358,10 +359,18 @@ const todoAdapter = createEntityAdapter();
 const initState = todoAdapter.getInitialState({
   status: 'idle',
 })
-// const getDataTodo = () => {
+const getDataTodo = async () => {
 
-//   return
-// }
+  const todos = [];
+  const q = query(collection(db, "plan"),  orderBy("id", "desc"));
+
+  await onSnapshot(q, (snapshot) => {
+    snapshot.docs.map(doc => todos.push({...doc.data(), id: doc.id}))
+
+  });
+  console.log("firestore todos:", todos);
+  return todos
+}
 //thunks
 const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   // const reponse = await 
@@ -375,14 +384,15 @@ const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   //   .then(res => console.log(res))
   //   .then(err => console.log(err))
   // return response.todos
-  const todos = []
-  fetch("/fetchApi/todos")
-  .then((res)=>res.json())
-  .then((json)=>{
-    json.todos.map((item)=>todos.push(item));
-  })
+  // const todos = []
+  // fetch("/fetchApi/todos")
+  // .then((res)=>res.json())
+  // .then((json)=>{
+  //   json.todos.map((item)=>todos.push(item));
+  // })
   // console.log("todos:", todos);
-  
+  const todos = await getDataTodo();
+  console.log("redux todos:",  todos);
   return todos;
 
   
@@ -1323,7 +1333,8 @@ const RefireCrud = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   useEffect(()=>{
-    //store.dispatch(fetchTodo());
+    store.dispatch(fetchTodo());
+    console.log("fetchTodo");
     // const test = async () => await setDoc(doc(collection(db, "plan"), "plan1"), {
     //   id: 1,
     //   title: "learn",
@@ -1380,6 +1391,7 @@ const RefireCrud = () => {
             }}>new plan</TTButton>}/>
             <Route path="/plan" element={<PlanUp/>}/>
             <Route path="/card" element={<CardCom/>}/>
+
           </Routes>
         </ThemeProvider>
 
