@@ -164,6 +164,190 @@ const useFirestore =(path) => {
     id, create, add, deleteId, update, docDb, colectionDb
   }
 }
+
+//helper - timerModify
+const increment = (state, type, action) => {
+  switch (type) {
+      case "hours":
+          state[type] >= 0 && state[type] < 12
+              ? action({
+                  ...state,
+                  [type]: state[type] + 1,
+              })
+              : action(state);
+          break;
+      case "minutes":
+          state[type] >= 0 && state[type] < 60
+              ? action({
+                  ...state,
+                  [type]: state[type] + 1,
+              })
+              : action(state);
+          break;
+      case "seconds":
+          state[type] >= 0 && state[type] < 60
+              ? action({
+                  ...state,
+                  [type]: state[type] + 1,
+              })
+              : action(state);
+          break;
+  }
+}
+const decrement = (state, type, action) => {
+  switch (type) {
+      case "hours":
+          state[type] > 0 && state[type] <= 12
+              ? action({
+                  ...state,
+                  [type]: state[type] - 1,
+              })
+              : action(state);
+          break;
+      case "minutes":
+          state[type] > 0 && state[type] <= 60
+              ? action({
+                  ...state,
+                  [type]: state[type] - 1,
+              })
+              : action(state);
+          break;
+      case "seconds":
+          state[type] > 0 && state[type] <= 60
+              ? action({
+                  ...state,
+                  [type]: state[type] - 1,
+              })
+              : action(state);
+          break;
+  }
+}
+//timer
+const timerInit = {
+  timer: {
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      notes:""
+  },
+  reminderData: ""
+};
+
+const timerSlice = createSlice({
+  name: "timer",
+  initialState: timerInit,
+  reducers: {
+      setTimer: (state, action) => ({
+          ...state, timer: action.payload
+      }),
+      setReminderData: (state, action) => ({
+          ...state, reminderData: action.payload
+      }),
+      reset: (state) => { state = initialState }
+  },
+});
+
+const { setTimer, setReminderData, reset } = timerSlice.actions;
+function CountDown() {
+  const [timerState, setTimerState] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const { timer } = useSelector((state) => state.timerSlice);
+  const [over, setOver] = useState(false)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    setTimerState(timer);
+  }, [timer])
+  useEffect(() => {
+    let timerID = setInterval(() => tick(), 1000);
+    return () => clearInterval(timerID);
+  })
+  useEffect(() => {
+    over && dispatch((setTimer(timerState)))
+  }, [over])
+
+  const tick = () => {
+    if (timerState.hours == 0 && timerState.minutes == 0 && timerState.seconds == 0) setOver(true)
+    else if (timerState.minutes == 0 && timerState.seconds == 0)
+      setTimerState({
+        hours: timerState.hours - 1,
+        minutes: 59,
+        seconds: 59
+      });
+    else if (timerState.seconds == 0)
+      setTimerState({
+        hours: timerState.hours,
+        minutes: timerState.minutes - 1,
+        seconds: 59
+      });
+    else
+      setTimerState({
+        hours: timerState.hours,
+        minutes: timerState.minutes,
+        seconds: timerState.seconds - 1
+      });
+  };
+
+  return (
+    <div className="countDown">
+      {
+        //over && <Popup />
+      }
+      <div id="hours" className="timeDisplay">{timerState.hours}</div>
+      <div id="minutes" className="timeDisplay">{timerState.minutes}</div>
+      <div id="seconds" className="timeDisplay">{timerState.seconds}</div>
+    </div>
+  );
+}
+
+//bug
+let lastid = 0;
+const bugSlice = createSlice({
+  name: "Bugs",
+  initialState: [],
+  reducers: {
+    // Action : Action / Event Handlers
+    BugAdded: (bugs, action) => {
+      bugs.push({ id: ++lastid, desc: action.payload.desc, resolved: false });
+    },
+    BugRemoved: (bugs, action) => {
+      const index = bugs.findIndex((bug) => bug.id === action.payload.id);
+      bugs.splice(index, 1);
+    },
+    BugResolved: (bugs, action) => {
+      const index = bugs.findIndex((bug) => bug.id === action.payload.id);
+      bugs[index].resolved = true;
+    },
+    BugToUser: (bugs, action) => {
+      const { bugId, userId } = action.payload;
+      const index = bugs.findIndex((bug) => bug.id === bugId);
+      bugs[index].userId = userId;
+    },
+  },
+});
+
+const { BugAdded, BugRemoved, BugResolved, BugToUser } = bugSlice.actions;
+
+const bugByUserSelector = (userId) =>
+  createSelector(
+    (state) => state.entities.bugs,
+    (bugs) => bugs.filter((bug) => bug.userId === userId)
+  );
+
+// Selector
+// export const unResolveBugsSelector = (state) => {
+//   return state.entities.bugs.filter((bug) => bug.resolved === false);
+// };
+
+// Memorization - Selector with cache data - Install package reselect
+// export const unResolveBugsSelector = createSelector(
+//   (state) => state.entities.bugs,
+//   (state) => state.entities.projects,
+//   (bugs, projects) => bugs.filter((bug) => !bug.resolved)
+// );
 //redux
 // const initTodo = {
 //   status: 'idle',
@@ -446,7 +630,9 @@ const { selectAll: selectPlan } = planAdapter.getSelectors((state)=>state.plan)
 const RootReducers = combineReducers({
   todos: todoSlice.reducer,
   filters: filtersSlice.reducer,
-  plan: planSlice.reducer
+  plan: planSlice.reducer,
+  bug: bugSlice.reducer,
+  timer: timerSlice.reducer,
 })
 const store = configureStore({
   devTools: true,
@@ -564,7 +750,7 @@ const ColorFilters = ({ value: colors, onChange }) => {
 const TodoListItem = ({ id }) => {
   // Call our `selectTodoById` with the state _and_ the ID value
   const todo = useSelector((state) => selectTodoById(state, id))
-  const { text, completed, color } = todo
+  const { title, content, completed, color } = todo
 
   const dispatch = useDispatch()
 
@@ -596,7 +782,7 @@ const TodoListItem = ({ id }) => {
             checked={completed}
             onChange={handleCompletedChanged}
           />
-          <div>{text}</div>
+          <div>{content}</div>
         </div>
         <div>
           <select
@@ -619,7 +805,7 @@ const TodoListItem = ({ id }) => {
 const TodoList = () => {
 
   const todoIds = useSelector(selectFilteredTodoIds)
-  // console.log("todoIds",todoIds)
+  console.log("todoIds",todoIds)
   const loadingStatus = useSelector((state) => state.todos.status)
 
   if (loadingStatus === 'loading') {
@@ -1171,6 +1357,7 @@ const RefireCrud = () => {
           <main>
             <section>
               <h2>Todos</h2>
+              {/* <CountDown/> */}
               <div>
                 <HeaderTodo />
                 <TodoList />
