@@ -1,4 +1,4 @@
-import {Timestamp, getFirestore, getDoc, doc, collection, onSnapshot, addDoc, query, orderBy, deleteDoc, setDoc} from "firebase/firestore";
+import {Timestamp, getFirestore, getDoc, doc, collection, onSnapshot, addDoc, query, orderBy, deleteDoc, setDoc, getDocs} from "firebase/firestore";
 import React, { useEffect, useState, forwardRef } from 'react';
 import {
   combineReducers,
@@ -359,20 +359,56 @@ const todoAdapter = createEntityAdapter();
 const initState = todoAdapter.getInitialState({
   status: 'idle',
 })
-const getDataTodo = async () => {
+const GetDataTodo = async () => {
 
-  const todos = [];
+  var todos = [];
   const q = query(collection(db, "plan"),  orderBy("id", "desc"));
 
-  await onSnapshot(q, (snapshot) => {
-    snapshot.docs.map(doc => todos.push({...doc.data(), id: doc.id}))
-
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    // doc.data() is never undefined for query doc snapshots
+    // console.log(doc.id, " => ", doc.data());
+    todos.push(doc.data());
   });
-  console.log("firestore todos:", todos);
+  // const test = onSnapshot(q, (snapshot) => {
+  //   return snapshot.docs.map(doc => ({...doc.data(), id: doc.id}))
+  //   //console.log("a",a);
+  //   // snapshot.docs.map(doc => todos.push({...doc.data(), id: doc.id}))
+  //   // var idtest = 7
+  //   // snapshot.docs.map(doc => {
+  //   //   // console.log("doc", doc.data())
+  //   //   return todos.push(
+  //   //     {id: idtest++,title: "asf"+idtest, content: "af"+ idtest, time: "fasdf"}
+  //   //   )}
+  //   // return true;
+  //   // )
+
+  // });
+  // test();
+  const a = [{a:"a"}, {b:"b"}]
+  const b = [{c:"c"}, {b:"b"}, {e:"e"}]
+  const c = [...a, ...b]
+  //todos.map(item=>console.log("onSnapshot:",item))
+  // console.log("firestore todos c:", c);
+  todos.push({
+    id: 4, title: "tan1", content: "abc1", time: "213222"
+  })
+  todos.push({
+    id: 5, title: "tan1", content: "abc1", time: "213222"
+  })
+  todos.push({
+    id: 6, title: "tan1", content: "abc1", time: "213222"
+  })
+  console.log("firestore todos c:", todos);
+  console.log("firestore todos:", todos.length);
   return todos
+  // return [
+  //   {id: 1, title: "tan1", content: "abc1", time: "213222"},
+  //   {id: 2, title: "tan2", content: "ab2", time: "213222"},
+  // ]
 }
 //thunks
-const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
+export const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   // const reponse = await 
   // const id = 1;
   // const title = "tan dep trai"
@@ -391,7 +427,7 @@ const fetchTodo = createAsyncThunk('todos/fetchTodo', async()=>{
   //   json.todos.map((item)=>todos.push(item));
   // })
   // console.log("todos:", todos);
-  const todos = await getDataTodo();
+  const todos = await GetDataTodo();
   console.log("redux todos:",  todos);
   return todos;
 
@@ -439,6 +475,10 @@ const todoSlice = createSlice({
   name: 'todo',
   initialState:initState,
   reducers:{
+    setLists(state, action){
+        
+        //state.entities[action.] = action.payload
+    },
     todoDeleted: todoAdapter.removeOne,
     allTodoCompleted(state, action){
       Object.values(state.entities).forEach(todo=>{
@@ -484,15 +524,38 @@ const todoSlice = createSlice({
     })
     // .addCase(fetchTodo.fulfilled, (state, action)=>{
     //   const newEntities = {};
-    //   action.payload.forEach(todo=>{
-    //     newEntities[todo.id] = todo
-    //   });
-    //   state.entities = newEntities
+    //   console.log("fulfilled: ",);
+    //   action.payload.map((item,index)=>{
+    //     console.log(item);
+    //     return {...newEntities, ...item}
+    //   })
+    //   action.payload.forEach((todo, index, array)=>{
+    //     console.log(todo);
+    //   })
+    //   action.payload.forEach(todo=>state.entities = {...newEntities, ...todo});
+    //   //   newEntities[todo.id] = todo;
+    //   // });
+      
+    //   state.status = 'idle'
+    //   console.log("entity:",newEntities);
+    // })
+    // .addCase(fetchTodo.fulfilled, (state, action)=>{
+    //   console.log("action.payload:", action.payload);
+    //   todoAdapter.addMany(state, action.payload);
     //   state.status = 'idle'
     // })
     .addCase(fetchTodo.fulfilled, (state, action)=>{
-      todoAdapter.setAll(state, action.payload);
-      state.status = 'idle'
+      console.log("addCase:", action.payload);
+      const itemTest =       [
+        {id: 1, title: "tan1", content: "abc1", time: "213222"},
+        {id: "2", title: "tan2", content: "abc2", time: "213222"},
+        {id: "3", title: "tan3", content: "abc3", time: "213222"}
+      ]
+
+      const test = [...itemTest, ...action.payload];
+      console.log(action.payload.length);
+      console.log("test addCase:", test);
+      todoAdapter.setAll(state, action.payload)
     })
     .addCase(saveNewTodo.fulfilled, (state, action)=>todoAdapter.addOne(state, action.payload))
     // .addCase(saveNewTodo.fulfilled, (state, action)=>{
@@ -516,7 +579,10 @@ const {selectAll: selectTodo, selectById: selectTodoById} = todoAdapter.getSelec
 
 const selectTodoId = createSelector(
   selectTodo,
-  todos => todos.map(td => td.id)
+  todos => todos.map((todo)=>{
+    console.log("test test todo",todo);
+    return todo
+  })
 );
 const selectFilteredTodos = createSelector(
   // First input selector: all todos
@@ -546,8 +612,8 @@ const selectFilteredTodoIds = createSelector(
   // Pass our other memoized selector as an input
   selectFilteredTodos,
   // And derive data in the output selector
-  (filteredTodos) => filteredTodos.map((todo) => {
-    // console.log("todo",todo);
+  (filteredTodos) => filteredTodos.map((todo,idx) => {
+    console.log("todo {0}: {1}",idx,todo);
     return todo.id
   })
 )
@@ -644,7 +710,7 @@ const RootReducers = combineReducers({
   bug: bugSlice.reducer,
   timer: timerSlice.reducer,
 })
-const store = configureStore({
+export const store = configureStore({
   devTools: true,
   // preloadedState: {},
   reducer: RootReducers,
@@ -815,23 +881,37 @@ const TodoListItem = ({ id }) => {
 const TodoList = () => {
 
   const todoIds = useSelector(selectFilteredTodoIds)
-  console.log("todoIds",todoIds)
+  const todos = useSelector(selectTodoId);
+  console.log("todoIds",todoIds);
+  console.log("selectTodoId: ", todos)
+  // console.log(todoAdapter.getSelectors(state=>state.todos));
   const loadingStatus = useSelector((state) => state.todos.status)
 
-  if (loadingStatus === 'loading') {
-    return (
-      <div>
-        <div/>
-      </div>
-    )
-  }
+  // if (loadingStatus === 'loading') {
+  //   return (
+  //     <div>
+  //       <div/>
+  //     </div>
+  //   )
+  // }
 
   const renderedListItems = todoIds.map((todoId) => {
 
     return <TodoListItem key={todoId} id={todoId} />
   })
 
-  return <ul>{renderedListItems}</ul>
+  return (
+    <div>
+      <label>old list</label>
+      <ul>{renderedListItems}</ul>
+      <label>new list</label>
+      {todos.map((item)=>{
+        return(
+          <label key={item.id}>{item.id}</label>
+        )
+      })}
+    </div>
+  )
 
 }
 
@@ -911,6 +991,44 @@ const LinearProgressLabel = (props) => {
   )
 }
 
+const TabStyle = styled(Tabs)((theme, ownState)=>{
+
+  return{
+    display: 'flex',
+    flexDirection: 'column',
+    '&.MuiTab-root.Mui-selected': {
+      color: 'gold',
+  },
+  }
+})
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
 const CardCom = (
 
 ) => {
@@ -918,6 +1036,12 @@ const CardCom = (
   // const plan = useSelector(filterTest);
   // const plan1 = useSelector(state=>state.plan)
   // console.log(plan);
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   const [expanded, setExpanded] = React.useState(false);
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -963,6 +1087,27 @@ const CardCom = (
         }}
       />
       <CardContent>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" sx={{
+            flexDirection: 'column',
+            backgroundColor: 'yellow',
+            display: 'flex'
+          }}>
+            <Tab label="Item One" {...a11yProps(0)} />
+            <Tab label="Item Two" {...a11yProps(1)} />
+            <Tab label="Item Three" {...a11yProps(2)} />
+          </Tabs>
+        </Box>
+        <TabPanel value={value} index={0}>
+          Item One
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          Item Two
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          Item Three
+        </TabPanel>
+
         <Typography variant="body2" color="text.secondary">
           This impressive paella is a perfect party dish and a fun meal to cook
           together with your guests. Add 1 cup of frozen peas along with the mussels,
@@ -1332,8 +1477,10 @@ const Form = () => {
 const RefireCrud = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
+  const [test, setTest] = useState(false);
   useEffect(()=>{
-    store.dispatch(fetchTodo());
+    
+
     console.log("fetchTodo");
     // const test = async () => await setDoc(doc(collection(db, "plan"), "plan1"), {
     //   id: 1,
@@ -1354,7 +1501,7 @@ const RefireCrud = () => {
   //     })
   // },[])
   return(
-      <Provider store={store}>
+      
         <MaterialUIControllerProvider>
         <ThemeProvider theme={themeLight}>
           
@@ -1362,7 +1509,7 @@ const RefireCrud = () => {
           <nav>
             <section>
               <h1>Redux Fundamentals Example</h1>
-
+              <button onClick={()=>setTest(!test)}>set {!test}</button>
             </section>
           </nav>
           <main>
@@ -1397,7 +1544,6 @@ const RefireCrud = () => {
 
         </MaterialUIControllerProvider>
 
-      </Provider>
   )
 }
 function TestCrud() {
