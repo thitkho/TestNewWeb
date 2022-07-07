@@ -63,7 +63,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
 import Favorite from "@mui/icons-material/Favorite";
-import { MaterialUIControllerProvider, themeLight, TTBox, TTButton, TTInput, TTTypography } from "../fullAppUi";
+import { MaterialUIControllerProvider, themeLight, TTBox, TTButton, TTInput, TTProgress, TTTypography } from "../fullAppUi";
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import TestCard from "./CardComponet";
 const bgImage_su = require("../assets/images/bg-sign-up-cover.jpeg");
@@ -149,8 +149,33 @@ const firebaseConfig2 = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
   mesurentId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 }
+
 const firebase = initializeApp(firebaseConfig2);
 const db = getFirestore(firebase);
+
+const RootPath = {
+  MASTER: "master",
+  BOOK: "books",
+  USER: "user",
+  GRAMMAR: "Grammar"
+
+}
+const SecondPath =  {
+  MASTER: "card",
+  BOOK: "book",
+
+}
+const ThirdPathBook = {
+
+}
+const FirestoreRef = (path, pathId) => {
+
+  //const basePath = 'mode/development';
+
+  const pathStr = `${path}/${path+pathId}`
+  console.log(pathStr);
+  return collection(db, pathStr);
+}
 const useFirestore =(path) => {
 
   const id = 1;
@@ -979,11 +1004,11 @@ const LinearProgressLabel = (props) => {
 
   return(
     <Box sx={{display: 'flex', alignItems: 'center'}}>
-      <Box sx={{width: '100%', mr: 1}}>
-        <LinearProgress variant="determinate" {...props}/>
+      <Box sx={{width: '90%', mr: 1}}>
+        <TTProgress variant="contained" {...props}/>
       </Box>
-      <Box sx={{minWidth: 35}}>
-        <Typography variant="body2" color={"text.secondary"}>
+      <Box sx={{minWidth: 50}}>
+        <Typography variant="body2">
           {`${Math.round(props.value)}%`}
         </Typography>
       </Box>
@@ -1014,7 +1039,8 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+          {children}
+          {/* <Typography>{children}</Typography> */}
         </Box>
       )}
     </div>
@@ -1040,6 +1066,7 @@ const CardCom = (
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    console.log("newValue",newValue)
   };
 
   const [expanded, setExpanded] = React.useState(false);
@@ -1051,7 +1078,7 @@ const CardCom = (
   useEffect(()=>{
     const timer = setInterval(()=>{
       setProgress((prevProgress)=>(prevProgress >= 100?10:prevProgress+10))
-    }, 1000);
+    }, 5000);
     return()=>{
       clearInterval(timer);
     };
@@ -1073,6 +1100,9 @@ const CardCom = (
         subheader="September 14, 2016"
         onClick={()=>console.log("card Header click")}
       />
+      <Box sx={{width: '100%', marginTop: -3}}>
+        <LinearProgressLabel value = {progress}/>
+      </Box>
       <CardMedia
         component="img"
         height="50"
@@ -1087,50 +1117,71 @@ const CardCom = (
         }}
       />
       <CardContent>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" sx={{
-            flexDirection: 'column',
-            backgroundColor: 'yellow',
-            display: 'flex'
-          }}>
-            <Tab label="Item One" {...a11yProps(0)} />
-            <Tab label="Item Two" {...a11yProps(1)} />
-            <Tab label="Item Three" {...a11yProps(2)} />
-          </Tabs>
-        </Box>
-        <TabPanel value={value} index={0}>
-          Item One
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          Item Two
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          Item Three
-        </TabPanel>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', flexDirection:'row-reverse' }}>
 
-        <Typography variant="body2" color="text.secondary">
-          This impressive paella is a perfect party dish and a fun meal to cook
-          together with your guests. Add 1 cup of frozen peas along with the mussels,
-          if you like.
-        </Typography>
+          <Tabs sx={{minWidth: '20%'}} orientation="vertical" value={value} onChange={handleChange} aria-label="basic tabs example">
+
+              <Tab label="Item One" {...a11yProps(0)} />
+              <Tab label="Item Two" {...a11yProps(1)} />
+              <Tab label="Item Three" {...a11yProps(2)} />
+
+          </Tabs>
+          <TabPanel value={value} index={0}>
+            <Typography>Item One</Typography>
+            <Typography variant="body2" color="text.secondary" >
+              This impressive paella is a perfect party dish and a fun meal to cook
+              together with your guests. Add 1 cup of frozen peas along with the mussels,
+              if you like.
+            </Typography>
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <TTTypography>Item Two</TTTypography>
+            
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            <TTTypography>Item Three</TTTypography>
+          </TabPanel>
+        </Box>
       </CardContent>
-      <Box sx={{width: '100%'}}>
-        <LinearProgressLabel value = {progress}/>
-      </Box>
+
       
       <CardActions disableSpacing>
-        <IconButton aria-label="add to favorites" sx={{
+        <IconButton size="small" aria-label="add to favorites" sx={{
           borderRadius:10,
           backgroundColor: 'blue',
         }}>
           <Favorite />
         </IconButton>
-        <IconButton aria-label="share" sx={{
+        <IconButton size="small" aria-label="share" sx={{
           borderRadius:10,
           backgroundColor: 'blue',
         }}>
           <Share />
         </IconButton>
+        <IconButton size="small" aria-label="share" sx={{
+          borderRadius:10,
+          backgroundColor: 'blue',
+        }}>
+          <Share />
+        </IconButton>
+        <IconButton size="small" aria-label="share" sx={{
+          borderRadius:10,
+          backgroundColor: 'blue',
+        }}>
+          <Share />
+        </IconButton>
+        <IconButton color="info" aria-label="share" sx={{
+          borderRadius:10,
+          backgroundColor: 'info',
+          fontSize: 10,
+          width: 30,
+          height: 30
+        }}>
+          <Share aria-disabled/>
+        </IconButton>
+        <TTButton variant="contained" color={"success"} sx={{
+          
+        }}> Get Start </TTButton>
         <ExpandMore
           expand={expanded}
           onClick={handleExpandClick}
@@ -1474,10 +1525,27 @@ const Form = () => {
   );
 };
 
+const DataItemCard = {
+  title:"",
+  titleDetail: "",
+  icon: "",
+  time: "2022年07月07日",
+  timer:30,
+  exp: 30,
+  start: 3,
+  howto:"",
+  example:[],
+  meaning:""
+}
+const useViewModel = () => {
+
+  return DataItemCard
+}
 const RefireCrud = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
   const [test, setTest] = useState(false);
+  const viewModel = useViewModel()
   useEffect(()=>{
     
 
@@ -1538,12 +1606,33 @@ const RefireCrud = () => {
             }}>new plan</TTButton>}/>
             <Route path="/plan" element={<PlanUp/>}/>
             <Route path="/card" element={<CardCom/>}/>
-
+            <Route path="/cal" element={<ExpCalculator/>}/>
           </Routes>
         </ThemeProvider>
 
         </MaterialUIControllerProvider>
 
+  )
+}
+const EXP = {
+
+}
+function ExpCalculator(){
+  const TimeScore = () => {
+    //10p-1score
+    return(
+      <div>
+        <label>time start</label>
+        <label>time end</label>
+        <label>time learn</label>
+        <label>time test</label>
+      </div>
+    )
+  }
+  return(
+    <div>
+      <TimeScore />
+    </div>
   )
 }
 function TestCrud() {

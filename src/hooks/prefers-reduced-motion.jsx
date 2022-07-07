@@ -1,7 +1,7 @@
 import React from "react";
 
 // User system can indicate reduced motion setting https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
-https://github.com/thanhtando/mydeploy.git
+
 const query = "(prefers-reduced-motion: no-preference)";
 
 export function usePrefersReducedMotion() {
