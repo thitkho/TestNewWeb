@@ -1,4 +1,32 @@
+
+Project Summary: @today
+  ☐ Add material UI (mateiral ui kit 2) @today
+  ☐ Add card game @today
+    ☐ https://github.com/inooid/react-redux-card-game
+    ☐ https://reactjsexample.com/a-simple-pokemon-catalogue-built-with-react-and-material-ui/
+  ☐ Use Redux @critical (https://redux.js.org/tutorials/essentials/part-3-data-flow)
+
+  ☐ Add Firebase-Firestore
+    ☐ https://qiita.com/momosuke/items/0fa933f8b6e470e5796d
+  ☐ Other
+  ☐ env
+    ☐ https://adostes.medium.com/using-environment-variables-in-a-react-application-ac3b6c307373
+Project Game:
+  ☐ https://github.com/chrisssf/react_RolePlayingGame
+Project example: @today
+  ✔ context - language @done(22-05-26 10:32)
+  ✔ connect - firebase @done(22-05-26 11:24)
+
 -----------------------------------------------------
+-----------------------------------------------------
+ProjectWork:
+  Admin(teacher):manager:
+  User(student):study:
+  Feature:
+    ☐ test leo rank theo level(hiragana, katakana, kanji)
+      ☐ hiragana: cach doc, example, y nghia
+DB:
+  CardJP
 Project Main:
   component_material_example:
     ☐ Box
@@ -11,11 +39,11 @@ Project Main:
     ✔ transitions_avatar @done(22-06-02 14:28)
     ☐ Avatar
   component_base:
-    ✔ TTBox @done(22-05-31 10:20)
-    ✔ TTTypography @done(22-05-31 10:20)
-    ✔ TTButton @today @done(22-05-31 13:58)
-    ✔ TTInput @today @done(22-06-01 09:21)
-    ✔ TTAvatar @done(22-06-10 11:26)
+    ☐ TTBox
+    ☐ TTTypography
+    ☐ TTButton
+    ☐ TTInput
+    ☐ TTAvatar
   component_project:
     ✔ DefaultNavbar @done(22-06-01 15:01)
     ☐ DashboardNavbar
@@ -53,14 +81,16 @@ Project Main:
     ✔ coverLayout (sign up pay) @done(22-06-01 13:42)
     ✔ dashboardLayout @done(22-06-06 14:15)
   page:
-    ✔ sign in @done(22-06-01 09:21)        
-    ✔ sign up @today @done(22-06-01 13:42) 
-    ✔ sign reset password @done(22-06-01 14:59)
-    ☐ intro (gioi thieu w)
-    ✔ dashboard _ follow and manage study time (manage time-tien do tomtat content da hoc tap) @done(22-06-10 11:25)
-    ✔ profile _ (thanh tich, result) @done(22-06-10 11:25)
-    ✔ nitification _ alert task (thong bao cac task, tien trinh) @done(22-06-06 14:15)
-    ✔ tables (noi dung hoc tap) @done(22-06-10 11:25)
+    ☐ sign in
+    ☐ sign up 
+    ☐ sign reset password
+    ☐ intro (gioi thieu web)
+    ☐ plan (ke hoach hoc tap)
+    ☐ dashboard _ follow and manage study time (manage time-tien do tomtat content da hoc tap)
+    ☐ profile _ (thanh tich, result)
+    ☐ nitification _ alert task (thong bao cac task, tien trinh)
+    ☐ tables (noi dung hoc tap, noi dung tham khao)
+
 
 
 Tip performance:
